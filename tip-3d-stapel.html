@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="nl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Platform stapeling</title>
+<link rel="stylesheet" href="https://use.typekit.net/xcs1asb.css">
+<style>
+/* Neue Haas Grotesk Display Pro 65 Medium van deze Mac (Monotype Connect of Adobe Fonts) */
+@font-face{font-family:"TIP NHG";src:local("NeueHaasDisplay-Mediu"),local("NHaasGroteskDSPro-65Md"),local("Neue Haas Grotesk Display Pro 65 Medium"),url("fonts/NeueHaasDisplay-Mediu.ttf") format("truetype")}
+:root{--ink:#141414;--mute:#6b6a66;--line:#d4d2cc}
+*{box-sizing:border-box}
+body{margin:0;background:#fff;color:var(--ink);font:15px/1.45 "Helvetica Neue",Helvetica,Arial,sans-serif}
+main{max-width:1320px;margin:0 auto;padding:28px 16px 48px}
+h1{font-size:32px;font-weight:600;margin:0 0 4px;letter-spacing:-.01em}
+p.lead{margin:0 0 18px;color:var(--mute);max-width:800px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 10px;font-size:13px;color:var(--mute)}
+.row .lab{min-width:70px}
+button{font:inherit;padding:6px 12px;border-radius:8px;border:1px solid var(--line);background:#fff;color:var(--ink);cursor:pointer}
+button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.sl{display:flex;align-items:center;gap:6px}
+.sl input{width:120px;accent-color:var(--ink)}
+.stagewrap{margin-top:14px;border-radius:12px;overflow:hidden;border:1px solid var(--line)}
+svg#stage{display:block;width:100%;height:auto;user-select:none;-webkit-user-select:none}
+.stagewrap:fullscreen{display:flex;align-items:center;justify-content:center;background:#fff;border:0;border-radius:0}
+.stagewrap:fullscreen svg{max-height:100vh;width:auto;max-width:100vw}
+.note{font-size:13px;color:var(--mute);margin:10px 0 0}
+html.embed main{max-width:none;padding:0}html.embed main>*:not(.stagewrap){display:none}html.embed .stagewrap{margin:0;border:0;border-radius:0}html.embed body{overflow:hidden}
+</style><script>if(/embed/.test(location.search))document.documentElement.classList.add('embed')</script><style>.back{display:inline-flex;align-items:center;gap:6px;margin:0 0 16px;font:600 14px/1 "Helvetica Neue",Helvetica,Arial,sans-serif;text-decoration:none;color:#fff;background:#141414;padding:9px 14px 9px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.25)}.back:hover{background:#333}.back:focus-visible{outline:2px solid #E6177A;outline-offset:2px}html.embed .back{display:none}@media print{.back{display:none}}</style><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600&display=swap"><style id="sitefont">/* letter van de site: Space Grotesk (Light voor tekst); beeldmerken en animaties blijven Neue Haas */
+body,button,select,input,label,.back{font-family:"Space Grotesk",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif}
+body{font-weight:300;letter-spacing:.005em}
+h1,h2,h3,b,strong,.num,.back,button.on,button.big,.cap a,.demo a.open{font-weight:500}
+h1{letter-spacing:-.02em}
+</style></head><body><main><a class="back" href="index.html" aria-label="Terug naar het overzicht">← Overzicht</a>
+<h1>Platform · dynamische stapeling</h1>
+<p class="lead">Richting 02, opgebouwd zoals p37: elk woord staat recht in een rechthoek en alleen de diepte loopt schuin weg. In "Getikt" klapt de diepte per tik van één laag naar de andere kant; in "Vloeiend" zwaait hij in een golf. Het P-woord wisselt mee. Met de kijkhoek kijk je van boven (zoals p37) of van onder tegen de stapel aan.</p>
+<div class="row"><span class="lab">Stijl</span><button id="sF" class="on">Vlak</button><button id="sL">Lijn</button><button id="sY">Lijn op geel (p38)</button><span style="width:10px"></span><button id="bStill">Stilstaan (p37)</button><button id="bP" class="on">P-woord wisselt</button><button id="bMini" class="on">Klein logo</button><button id="bSS" class="on">Set 2</button><button id="bFs">Volledig scherm</button></div>
+<div class="row"><span class="lab">Inhoud</span><button id="cW" class="on">Woorden (p37)</button><button id="cL">Letters TIP (p34)</button></div>
+<div class="row"><span class="lab">Beweging</span><button id="mT" class="on">Getikt</button><button id="mS">Vloeiend</button>
+ <label class="sl">Zwaaien <input type="range" id="amp" min="0" max="60" value="22"></label>
+ <label class="sl">Diepte <input type="range" id="dep" min="40" max="140" value="100"></label>
+ <label class="sl">Golf <input type="range" id="wav" min="0" max="100" value="45"></label>
+ <label class="sl">Snelheid <input type="range" id="spd" min="10" max="200" value="100"></label></div>
+<div class="row"><span class="lab">Kijkhoek</span><label class="sl">onder <input type="range" id="view" min="-100" max="100" value="100"> boven</label><button id="bView">Kijkhoek beweegt</button></div>
+<div class="stagewrap" id="wrap"><svg id="stage" viewBox="0 0 2000 1306" xmlns="http://www.w3.org/2000/svg"><rect id="bg" width="2000" height="1306" fill="#fff"/><g id="big"></g><text id="meas" x="-9999" y="-9999"></text><g id="mini" transform="translate(1624.8,1047.6) scale(.205)"></g></svg></div>
+<p class="note">Spatie = pauze. Letter: Neue Haas Grotesk Display Pro 65 Medium.</p>
+</main>
+<script>
+const FONT='"TIP NHG",neue-haas-grotesk-display,"Neue Haas Grotesk Display Pro","Helvetica Neue",Helvetica,Arial,sans-serif',LS=-.01; // spatiëring in em
+// maten uit p37 (artboard 2000 × 1306): voorvlak x,y,b,h + dieptevector d
+const L=[
+ {words:["Textiel"],col:"#FF5000",x:318,y:192,w:560,h:193,d:[579,327],al:"left",cap:130,bo:30},
+ {words:["Innovatie"],col:"#00A800",x:610,y:389,w:739,h:192,d:[-418,304],al:"right",cap:130,bo:30},
+ {words:["Platform","Pioniers","Patroon","Plek","Podium","Praktijk","Proeftuin"],col:"#FFFF00",x:360,y:598,w:740,h:195,d:[501,280],al:"left",cap:130,bo:30}];
+// TIP-letters zoals p34
+const L2=[
+ {words:["T"],col:"#FF5000",x:612,y:222,w:248,h:248,d:[649,646],al:"center",cap:168,bo:40},
+ {words:["I"],col:"#00A800",x:960,y:395,w:249,h:248,d:[-822,819],al:"center",cap:168,bo:40},
+ {words:["P"],col:"#FFFF00",x:612,y:568,w:248,h:248,d:[649,646],al:"center",cap:168,bo:40}];
+let SET=L,mode="tick",follow=false,PTR=null;
+const PADL=27,PADR=38,PADRR=24,PADRL=26; // p37: links uitgelijnd 27 | 38, rechts uitgelijnd 26 | 24
+let style='flat',still=false,spinP=true,mini=true,ss=true,viewAnim=false,playing=true,t=0,last=null;
+const $=id=>document.getElementById(id);
+let FS=190;
+const meas=()=>$('meas');
+function tw(word,fs){const m=meas();m.setAttribute('font-size',fs);m.textContent=word;return m.getComputedTextLength();}
+function styleText(el){el.setAttribute('font-family',FONT);el.setAttribute('letter-spacing',LS+'em');el.style.fontFeatureSettings=ss?'"ss02"':'normal';}
+function setup(){const c=document.createElement('canvas').getContext('2d');c.font=`200px ${FONT}`;const cap=c.measureText('H').actualBoundingBoxAscent/200;FS=130/cap; // kapitaalhoogte zoals p37 en p34
+ styleText(meas());for(const l of L.concat(L2)){l.fs=l.cap/cap;l.base={len:Math.hypot(...l.d),ang:Math.atan2(l.d[1],l.d[0])};l.ww=l.words.map(w=>Math.round(tw(w,l.fs)+(l.al==='right'?PADRL+PADRR:PADL+PADR)));}
+ l2fit();}
+function hull(P){P=P.slice().sort((a,b)=>a[0]-b[0]||a[1]-b[1]);const cr=(o,a,b)=>(a[0]-o[0])*(b[1]-o[1])-(a[1]-o[1])*(b[0]-o[0]);
+ const lo=[],up=[];for(const p of P){while(lo.length>1&&cr(lo[lo.length-2],lo[lo.length-1],p)<=0)lo.pop();lo.push(p);}
+ for(const p of P.reverse()){while(up.length>1&&cr(up[up.length-2],up[up.length-1],p)<=0)up.pop();up.push(p);}return lo.slice(0,-1).concat(up.slice(0,-1));}
+const ease=x=>x<=0?0:x>=1?1:x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;
+const PER=4.2,TK=1.4; // rustiger tikken
+const back=x=>x>=1?1:1+1.9*Math.pow(x-1,3)+.9*Math.pow(x-1,2);
+function tickSign(t,i){const n=Math.floor(t/TK),f=t-n*TK,cnt=k=>k<i?0:Math.floor((k-i)/3)+1,cur=cnt(n)%2?-1:1;
+ if(n>=i&&(n-i)%3===0){const pv=-cur;return pv+(cur-pv)*back(f/.55);}return cur;}
+function viewK(t){return viewAnim&&!still?Math.cos(t*2*Math.PI/10):$('view').value/100;}
+// geometrie van alle lagen op tijd t
+function geom(t,kOverride,angAll){const amp=$('amp').value*Math.PI/180,dep=$('dep').value/100,wav=$('wav').value/100,k=kOverride??viewK(t);
+ return SET.map((l,i)=>{let ang=l.base.ang,len=l.base.len*dep,w=l.al==='center'?l.w:l.ww[0],word=l.words[0],prev=null,roll=1,sx=1; // vlak altijd passend om het woord
+  if(!still){if(mode==='tick')sx=tickSign(t,i);else{const ph=t*2*Math.PI/6-i*wav*1.6;ang+=amp*Math.sin(ph);len*=1+.18*Math.sin(ph*2+.6);}
+   if(spinP&&l.words.length>1){const n=l.words.length,kk=Math.floor(t/PER),f=(t-kk*PER)/PER,cur=kk%n,pv=(kk-1+n)%n;
+    roll=ease(f/.3);word=l.words[cur];prev=l.words[pv];w=l.ww[pv]+(l.ww[cur]-l.ww[pv])*roll;}}
+  if(follow&&!still){sx=1;ang=angAll!==undefined?angAll:(l.fa??l.base.ang);} // muis als lamp: diepte wijst van de muis af
+  const d=[Math.cos(ang)*len*sx,Math.sin(ang)*len*(follow&&!still?1:k)],x=l.x,y=l.y,h=l.h; // k<0: van onder gezien, diepte gaat omhoog
+  const F=[[x,y],[x+w,y],[x+w,y+h],[x,y+h]],H=hull(F.concat(F.map(p=>[p[0]+d[0],p[1]+d[1]])));
+  return{l,i,F,H,w,word,prev,roll,d};});}
+// alles altijd binnen beeld: grenzen over de hele beweging, dan schalen en centreren
+let FIT='';
+function l2fit(){let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;const ts=still?[0]:Array.from({length:Math.ceil(PER*7/.15)},(_,j)=>j*.15);
+ const ks=still||!viewAnim?[undefined]:[1,-1,.5,-.5,0];
+ const as=follow&&!still?Array.from({length:16},(_,j)=>j*Math.PI/8):[undefined];
+ for(const tt of ts)for(const kk of ks)for(const aa of as)for(const g of geom(tt,kk,aa))for(const p of g.H){x0=Math.min(x0,p[0]);x1=Math.max(x1,p[0]);y0=Math.min(y0,p[1]);y1=Math.max(y1,p[1]);}
+ const M=70,bw=2000-2*M,bh=1306-2*M,s=Math.min(1,bw/(x1-x0),bh/(y1-y0)),cx=(x0+x1)/2,cy=(y0+y1)/2;
+ FIT=`translate(${(1000-cx*s).toFixed(1)},${(653-cy*s).toFixed(1)}) scale(${s.toFixed(4)})`;$('big').setAttribute('transform',FIT);}
+function frame(t){const G=geom(t),up=G.reduce((a,g)=>a+g.d[1],0)<0,order=up?[2,1,0]:[0,1,2];let s=''; // diepte omhoog: bovenste laag vooraan
+ for(const i of order){const{l,F,H,w,word,prev,roll}=G[i];
+  const pts=a=>a.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
+  if(style==='flat')s+=`<polygon points="${pts(H)}" fill="${l.col}"/>`;
+  else s+=`<polygon points="${pts(H)}" fill="#fff" stroke="#141414" stroke-width="2" stroke-linejoin="miter"/>`; // zoals p38: alleen de buitenlijn
+  const id='f'+i+Math.random().toString(36).slice(2,6),x=F[0][0],y=F[0][1],h=l.h;
+  s+=`<clipPath id="${id}"><polygon points="${pts(F)}"/></clipPath><g clip-path="url(#${id})" font-family='${FONT}' font-size="${l.fs.toFixed(1)}" letter-spacing="${LS}em" style="font-feature-settings:${ss?"'ss02'":'normal'}" fill="#000">`;
+  const tx=l.al==='right'?x+w-PADRR:l.al==='center'?x+w/2:x+PADL,an=l.al==='right'?'end':l.al==='center'?'middle':'start',by=y+h-l.bo;
+  if(prev&&roll<1)s+=`<text x="${tx}" y="${(by-h*roll).toFixed(1)}" text-anchor="${an}">${prev}</text><text x="${tx}" y="${(by+h*(1-roll)).toFixed(1)}" text-anchor="${an}">${word}</text>`;
+  else s+=`<text x="${tx}" y="${by}" text-anchor="${an}">${word}</text>`;
+  s+='</g>';}
+ return s;}
+function render(){const f=frame(t);$('big').innerHTML=f;$('mini').innerHTML=mini?f:'';}
+function steer(){for(const l of L.concat(L2)){if(l.fa===undefined)l.fa=l.base.ang;let tg=l.base.ang;
+ if(follow&&PTR){const w=l.al==='center'?l.w:l.ww[0];tg=Math.atan2(l.y+l.h/2-PTR[1],l.x+w/2-PTR[0]);}
+ let d=tg-l.fa;d=Math.atan2(Math.sin(d),Math.cos(d));l.fa+=d*.12;}}
+function loop(ts){steer();if(last!==null&&playing&&!still)t+=(ts-last)/1000*$('spd').value/100;last=ts;render();requestAnimationFrame(loop);}
+const tg=(id,fn)=>{const b=$(id);b.onclick=()=>b.classList.toggle('on',fn());};
+function setStyle(st,id,bg){style=st;['sF','sL','sY'].forEach(b=>$(b).classList.toggle('on',b===id));$('bg').setAttribute('fill',bg);}
+$('sF').onclick=()=>setStyle('flat','sF','#fff');
+$('sL').onclick=()=>setStyle('line','sL','#fff');
+$('sY').onclick=()=>setStyle('line','sY','#FFFF57');
+const STG=$('stage');
+STG.addEventListener('pointermove',ev=>{if(!follow)return;const m=$('big').getScreenCTM().inverse(),q=new DOMPoint(ev.clientX,ev.clientY).matrixTransform(m);PTR=[q.x,q.y];});
+STG.addEventListener('pointerleave',()=>PTR=null);
+if($('bMouse'))$('bMouse').onclick=()=>{follow=!follow;$('bMouse').classList.toggle('on',follow);STG.style.touchAction=follow?'none':'';if(!follow)PTR=null;l2fit();};
+$('cW').onclick=()=>{SET=L;$('cW').classList.add('on');$('cL').classList.remove('on');l2fit();};
+$('cL').onclick=()=>{SET=L2;$('cL').classList.add('on');$('cW').classList.remove('on');l2fit();};
+$('mT').onclick=()=>{mode='tick';$('mT').classList.add('on');$('mS').classList.remove('on');l2fit();};
+$('mS').onclick=()=>{mode='smooth';$('mS').classList.add('on');$('mT').classList.remove('on');l2fit();};
+tg('bStill',()=>{still=!still;l2fit();return still;});tg('bP',()=>{spinP=!spinP;l2fit();return spinP;});tg('bMini',()=>mini=!mini);
+tg('bSS',()=>{ss=!ss;styleText(meas());setup();return ss;});tg('bView',()=>{viewAnim=!viewAnim;l2fit();return viewAnim;});
+for(const id of['amp','dep','wav','view'])$(id).addEventListener('change',l2fit);
+$('bFs').onclick=()=>{const el=$('wrap');document.fullscreenElement?document.exitFullscreen():el.requestFullscreen&&el.requestFullscreen();};
+document.addEventListener('keydown',e=>{if(e.code==='Space'){e.preventDefault();playing=!playing;}});
+// altijd starten, ook als het lettertype niet (op tijd) laadt
+let started=false;const start=()=>{if(started)return;started=true;setup();requestAnimationFrame(loop);};
+Promise.race([(document.fonts?document.fonts.load(`100px "TIP NHG"`).then(()=>document.fonts.ready):Promise.resolve()),new Promise(r=>setTimeout(r,1500))]).catch(()=>{}).finally(start);
+if(document.fonts)document.fonts.addEventListener('loadingdone',()=>{if(started)setup();});
+</script><script>if(!document.fullscreenEnabled){const b=document.getElementById("bFs");if(b)b.style.display="none";}</script><script src="tip-ui.js"></script></body></html>

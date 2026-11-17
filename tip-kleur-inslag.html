@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="nl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Inslag kleur</title>
+<link rel="stylesheet" href="https://use.typekit.net/xcs1asb.css">
+<style>
+@font-face{font-family:"TIP NHG";src:local("NHaasGroteskDSPro-65Md"),local("Neue Haas Grotesk Display Pro 65 Medium");font-weight:600}
+:root{--bg:#ecebe7;--ink:#141414;--mute:#6b6a66;--line:#c9c7c0;--card:#f6f5f2}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161616;--ink:#f1f0ec;--mute:#9a9893;--line:#3a3936;--card:#1f1f1e}}
+:root[data-theme="dark"]{--bg:#161616;--ink:#f1f0ec;--mute:#9a9893;--line:#3a3936;--card:#1f1f1e}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 "TIP NHG",neue-haas-grotesk-display,"Helvetica Neue",Helvetica,Arial,sans-serif}
+main{max-width:1320px;margin:0 auto;padding:28px 16px 48px}
+h1{font-size:32px;font-weight:600;margin:0 0 4px;letter-spacing:-.01em}
+p.lead{margin:0 0 20px;color:var(--mute);max-width:760px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 18px;font-size:13px;color:var(--mute)}
+button{font:inherit;padding:6px 12px;border-radius:8px;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer}
+button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+figure{margin:0;background:var(--card);border-radius:14px;padding:12px 12px 14px;border:1px solid var(--line)}
+canvas{width:100%;height:auto;display:block;border-radius:10px}
+figcaption{display:flex;justify-content:space-between;align-items:baseline;margin-top:10px;gap:8px}
+figcaption b{font-weight:600;font-size:17px}
+figcaption span{color:var(--mute);font-size:12px;font-variant-numeric:tabular-nums}
+figure p{margin:6px 0 0;font-size:13px;color:var(--mute)}
+.sw{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin-right:4px}
+</style><style>.back{display:inline-flex;align-items:center;gap:6px;margin:0 0 16px;font:600 14px/1 "Helvetica Neue",Helvetica,Arial,sans-serif;text-decoration:none;color:#fff;background:#141414;padding:9px 14px 9px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.25)}.back:hover{background:#333}.back:focus-visible{outline:2px solid #E6177A;outline-offset:2px}html.embed .back{display:none}@media print{.back{display:none}}</style><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600&display=swap"><style id="sitefont">/* letter van de site: Space Grotesk (Light voor tekst); beeldmerken en animaties blijven Neue Haas */
+body,button,select,input,label,.back{font-family:"Space Grotesk",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif}
+body{font-weight:300;letter-spacing:.005em}
+h1,h2,h3,b,strong,.num,.back,button.on,button.big,.cap a,.demo a.open{font-weight:500}
+h1{letter-spacing:-.02em}
+</style></head><body><main><a class="back" href="index.html" aria-label="Terug naar het overzicht">← Overzicht</a>
+<h1>Inslag op de paperbus</h1>
+<p class="lead">Het huidige blauw van Inslag (CMYK 80/60/0/0) naast drie alternatieven, van blauw naar paars. Steeds met hetzelfde weefsel, op dezelfde zuil.</p>
+<div class="row"><span>Papier:</span><button data-paper="#f3eee3" class="on">Ecru</button><button data-paper="#ffffff">Wit</button><button data-paper="ink">Kleur vol</button>
+<span style="width:12px"></span><button id="bAcc" class="on">Magenta als knalkleur</button><button id="bRot" class="on">Zuil draait</button></div>
+<div class="grid" id="grid"></div>
+</main>
+<script>
+const OPT=[
+ {n:"Huidig blauw",hex:"#4262B0",t:"Wat er nu in route 5 staat. Op scherm wordt CMYK 80/60 grijzig en mat."},
+ {n:"Indigo",hex:"#2433D6",t:"Zelfde richting, maar helder en verzadigd. De verfkleur van textiel. Mijn advies."},
+ {n:"Ultramarijn",hex:"#3A1FD6",t:"Blauw met een randje paars. Spannender, nog net blauw."},
+ {n:"Paars",hex:"#7448E0",t:"Echt paars. Botst met magenta en voelt eerder cultureel dan zakelijk."}];
+const MAG="#E6177A",FONT='"TIP NHG",neue-haas-grotesk-display,"Helvetica Neue",Helvetica,Arial,sans-serif';
+let paper="#f3eee3",acc=true,rot=true,t=0;
+const TW=1700,TH=900; // poster textuur (rondom)
+function weave(ctx,mask,col,bg){ // tegels met 3 strepen, om en om horizontaal/verticaal, binnen het masker
+ const T=30,g=mask.getContext('2d').getImageData(0,0,TW,TH).data;
+ ctx.fillStyle=col;
+ for(let y=0;y<TH;y+=T)for(let x=0;x<TW;x+=T){
+  const i=((y+T/2|0)*TW+(x+T/2|0))*4;if(g[i+3]<128)continue;
+  const h=((x/T+y/T)&1)===0,s=T/5;
+  for(let k=0;k<3;k++){const o=s*(.5+k*1.5)-0;if(h)ctx.fillRect(x+1,y+o,T-2,s*.95);else ctx.fillRect(x+o,y+1,s*.95,T-2);}
+ }}
+function texture(o){
+ const c=document.createElement('canvas');c.width=TW;c.height=TH;const x=c.getContext('2d');
+ const full=paper==="ink",bg=full?o.hex:paper,fg=full?paper==="ink"?"#f3eee3":o.hex:o.hex;
+ x.fillStyle=bg;x.fillRect(0,0,TW,TH);
+ const m=document.createElement('canvas');m.width=TW;m.height=TH;const mx=m.getContext('2d');
+ mx.fillStyle="#000";mx.textBaseline="alphabetic";
+ mx.font=`600 600px ${FONT}`;mx.fillText("TIP",30,560);mx.fillText("TIP",TW/2+30,560);
+ weave(x,m,fg,bg);
+ x.fillStyle=fg;x.font=`600 92px ${FONT}`;
+ for(const ox of[0,TW/2]){x.fillText("Textiel",ox+40,700);x.fillText("Innovatie",ox+40,800);x.fillText("Platform",ox+40,900-10);}
+ if(acc){for(const ox of[0,TW/2]){x.fillStyle=MAG;x.fillRect(ox+520,650,240,240);x.fillStyle="#fff";x.font=`600 40px ${FONT}`;x.fillText("Wij tippen",ox+540,820);x.fillText("de sector",ox+540,866);}}
+ return c;}
+let tex=[];
+function build(){tex=OPT.map(texture);}
+const grid=document.getElementById('grid'),cv=[];
+OPT.forEach((o,i)=>{const f=document.createElement('figure');
+ f.innerHTML=`<canvas width="520" height="760"></canvas><figcaption><b>${o.n}</b><span><i class="sw" style="background:${o.hex}"></i>${o.hex}</span></figcaption><p>${o.t}</p>`;
+ grid.appendChild(f);cv.push(f.querySelector('canvas'));});
+function column(c,tx,ang){ // aanplakzuil met poster rondom
+ const x=c.getContext('2d'),W=c.width,H=c.height,cx=W/2,R=150,top=150,bot=650;
+ const sky=x.createLinearGradient(0,0,0,H);sky.addColorStop(0,"#b9cbe0");sky.addColorStop(.62,"#e4e8ec");sky.addColorStop(.62,"#8a6a5c");sky.addColorStop(1,"#6e5146");
+ x.fillStyle=sky;x.fillRect(0,0,W,H);
+ // poster: kolommen pixels van de cilinder
+ const ph=bot-top,per=2*Math.PI*R; // de hele poster loopt één keer rond
+ for(let sx=-R;sx<R;sx++){
+  const th=Math.asin((sx+.5)/R),u=((th*R+per*.25+ang)%per+per)%per/per*TW;
+  const shade=.55+.45*Math.cos(th)**.6;
+  x.drawImage(tx,Math.min(TW-1,u|0),0,1,TH,cx+sx,top,1.2,ph);
+  x.fillStyle=`rgba(0,0,0,${(1-shade)*.6})`;x.fillRect(cx+sx,top,1.2,ph);
+ }
+ x.fillStyle="rgba(255,255,255,.08)";x.fillRect(cx-R*.55,top,R*.25,ph);
+ // naad
+ // rand boven en onder
+ const el=(y,rx,ry,fill)=>{x.beginPath();x.ellipse(cx,y,rx,ry,0,0,Math.PI*2);x.fillStyle=fill;x.fill();};
+ x.fillStyle="#3b3d3c";x.fillRect(cx-R-8,top-34,2*R+16,34);el(top,R+8,14,"#3b3d3c");
+ x.fillStyle="#e9e9e6";x.fillRect(cx-R-12,top-62,2*R+24,28);el(top-34,R+12,16,"#e9e9e6");
+ x.beginPath();x.moveTo(cx-R-14,top-62);x.lineTo(cx,top-150);x.lineTo(cx+R+14,top-62);x.closePath();x.fillStyle="#2f302f";x.fill();el(top-62,R+14,17,"#2f302f");
+ x.fillStyle="#8d8f8c";x.fillRect(cx-R-14,bot,2*R+28,44);el(bot+44,R+14,14,"#8d8f8c");
+ x.fillStyle="#3b3d3c";x.fillRect(cx-R-4,bot,2*R+8,8);
+ x.fillStyle="rgba(0,0,0,.18)";x.beginPath();x.ellipse(cx+40,bot+62,R+60,18,0,0,Math.PI*2);x.fill();
+}
+function draw(){OPT.forEach((o,i)=>column(cv[i],tex[i],t));}
+function loop(){if(rot){t+=0.8;draw();}requestAnimationFrame(loop);}
+document.querySelectorAll('[data-paper]').forEach(b=>b.onclick=()=>{paper=b.dataset.paper;document.querySelectorAll('[data-paper]').forEach(z=>z.classList.toggle('on',z===b));build();draw();});
+document.getElementById('bAcc').onclick=e=>{acc=!acc;e.target.classList.toggle('on',acc);build();draw();};
+document.getElementById('bRot').onclick=e=>{rot=!rot;e.target.classList.toggle('on',rot);};
+(document.fonts?document.fonts.load('600 100px "TIP NHG"').then(()=>document.fonts.ready):Promise.resolve()).then(()=>{build();draw();requestAnimationFrame(loop);});
+</script><script src="tip-ui.js"></script></body></html>

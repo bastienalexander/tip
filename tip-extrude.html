@@ -1,0 +1,246 @@
+<h2 class="sr-only">Interactieve 3D-tool: de letters T, I en P los geëxtrudeerd, elk met eigen diepte, positie, draaiing en kanteling, als lijntekening met presets en SVG-download.</h2>
+<style>
+.tx-wrap{display:flex;flex-direction:column;gap:14px;padding:.5rem 0}
+.tx-stage{position:relative;width:100%;aspect-ratio:1280/800;border-radius:12px;overflow:hidden;border:.5px solid var(--border);touch-action:none;cursor:grab}
+.tx-stage svg{display:block;width:100%;height:100%}
+.tx-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:6px 18px}
+.tx-row{display:grid;grid-template-columns:78px minmax(0,1fr) 44px;align-items:center;gap:8px;font-size:13px;color:var(--text-secondary)}
+.tx-row span:last-child{text-align:right;color:var(--text-primary);font-variant-numeric:tabular-nums}
+.tx-bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:13px;color:var(--text-secondary)}
+.tx-bar button{font-size:13px;padding:4px 10px;height:auto}
+.tx-bar button.on{background:var(--fill-ghost-selected);border-color:var(--border-stronger)}
+.tx-h{font-size:12px;color:var(--text-muted);margin:6px 0 2px}
+</style>
+<div class="tx-wrap">
+<div class="tx-stage" id="stage"><svg id="svg" viewBox="0 0 1280 800" xmlns="http://www.w3.org/2000/svg"></svg></div>
+<div class="tx-bar" id="presetBar"><span style="margin-right:4px">Presets</span></div>
+<div class="tx-bar">
+<button id="play"><i class="ti ti-player-play" aria-hidden="true"></i> Afspelen</button>
+<button id="stop"><i class="ti ti-player-stop" aria-hidden="true"></i> Stop</button>
+<button id="rec"><i class="ti ti-video" aria-hidden="true"></i> Opnemen</button>
+<button id="dl"><i class="ti ti-download" aria-hidden="true"></i> SVG</button>
+<button id="save"><i class="ti ti-plus" aria-hidden="true"></i> Bewaar preset</button>
+<span id="msg" style="font-size:12px;color:var(--text-muted)"></span>
+</div>
+<div>
+<div class="tx-bar" style="margin-bottom:6px"><span style="margin-right:4px">Letter</span><button data-l="T" class="lb on">T</button><button data-l="I" class="lb">I</button><button data-l="P" class="lb">P</button><button data-l="*" class="lb">Alle drie</button></div>
+<div class="tx-grid" id="letterCtl"></div>
+</div>
+<div>
+<div class="tx-h">Camera en stijl</div>
+<div class="tx-grid" id="camCtl"></div>
+<div class="tx-bar" style="margin-top:8px">
+<span>Stijl</span><button data-s="line" class="sb on">Lijn</button><button data-s="flat" class="sb">Vlak</button><button data-s="solid" class="sb">Silhouet</button><button data-s="wire" class="sb">Draad</button>
+<span style="margin-left:8px">Kleur</span><input type="color" id="cLine" value="#20345c" style="width:34px;height:26px;padding:0;border:none;background:none"><input type="color" id="cBg" value="#f7de8d" style="width:34px;height:26px;padding:0;border:none;background:none">
+<button data-c="#20345c,#f7de8d" class="cb">Navy op geel</button><button data-c="#111111,#ffffff" class="cb">Zwart</button><button data-c="#e6007e,#ffffff" class="cb">Magenta</button><button data-c="#ffffff,#2b44c8" class="cb">Wit op blauw</button>
+<label style="display:flex;align-items:center;gap:4px"><input type="checkbox" id="counter" checked> Binnenruimte P</label>
+</div>
+</div>
+</div>
+<script id="core">
+var LET = ["T", "I", "P"];
+function arc(cx, cy, r, a0, a1, n) { var o = []; for (var i = 0; i <= n; i++) { var a = (a0 + (a1 - a0) * i / n) * Math.PI / 180; o.push([cx + r * Math.cos(a), cy + r * Math.sin(a)]); } return o; }
+function shape(L, counter) {
+  var C = [];
+  if (L === "T") C.push({p: [[-.15,0],[.15,0],[.15,.7],[.45,.7],[.45,1],[-.45,1],[-.45,.7],[-.15,.7]], s: null});
+  if (L === "I") C.push({p: [[-.15,0],[.15,0],[.15,1],[-.15,1]], s: null});
+  if (L === "P") {
+    var a = arc(.15, .675, .325, -90, 90, 28), p = [[-.35,0],[-.05,0],[-.05,.35]].concat(a, [[-.35,1]]), s = [];
+    for (var i = 0; i < p.length; i++) s.push(i < 3 || i === p.length - 1);
+    C.push({p: p, s: s});
+    if (counter) {
+      var b = arc(.15, .675, .055, 90, -90, 10), q = [[-.05,.62],[-.05,.73]].concat(b), t = [];
+      for (var j = 0; j < q.length; j++) t.push(j < 2);
+      C.push({p: q, s: t});
+    }
+  }
+  var minx = 1e9, maxx = -1e9;
+  C.forEach(function (c) { if (!c.s) c.s = c.p.map(function () { return true; }); c.p.forEach(function (v) { minx = Math.min(minx, v[0]); maxx = Math.max(maxx, v[0]); }); });
+  var cx = (minx + maxx) / 2;
+  C.forEach(function (c) { c.p = c.p.map(function (v) { return [v[0] - cx, v[1] - .5]; }); });
+  return C;
+}
+function xf(v, L) {
+  var rz = L.rz * Math.PI / 180, ry = L.ry * Math.PI / 180;
+  var x = v[0] * Math.cos(rz) - v[1] * Math.sin(rz), y = v[0] * Math.sin(rz) + v[1] * Math.cos(rz), z = v[2];
+  var x2 = x * Math.cos(ry) + z * Math.sin(ry), z2 = -x * Math.sin(ry) + z * Math.cos(ry);
+  return [x2, y, z2];
+}
+function scene(S, W, H) {
+  var th = S.az * Math.PI / 180, ph = S.el * Math.PI / 180;
+  var cdir = [Math.cos(ph) * Math.sin(th), Math.sin(ph), Math.cos(ph) * Math.cos(th)];
+  var rr = [Math.cos(th), 0, -Math.sin(th)], uu = [-Math.sin(ph) * Math.sin(th), Math.cos(ph), -Math.sin(ph) * Math.cos(th)];
+  var k = S.zoom * Math.min(W, H) * .42, ox = W / 2, oy = H / 2;
+  function dot(a, b) { return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]; }
+  function P(w) { return [ox + dot(w, rr) * k, oy - dot(w, uu) * k, dot(w, cdir)]; }
+  var faces = [];
+  LET.forEach(function (name) {
+    var L = S.L[name], d = L.d / 2, C = shape(name, S.counter);
+    function W3(v, z) { var t = xf([v[0], v[1], z], L); return [t[0] + L.x, t[1] + L.y, t[2] + L.z]; }
+    var nf = xf([0, 0, 1], L), nb = [-nf[0], -nf[1], -nf[2]];
+    var capF = [], capB = [], eF = [], eB = [];
+    C.forEach(function (c) {
+      var n = c.p.length, F = [], B = [], vis = [], norms = [];
+      for (var i = 0; i < n; i++) { F.push(P(W3(c.p[i], d))); B.push(P(W3(c.p[i], -d))); }
+      capF.push(F); capB.push(B);
+      for (var i = 0; i < n; i++) {
+        var a = c.p[i], b = c.p[(i + 1) % n], dx = b[0] - a[0], dy = b[1] - a[1], ln = Math.hypot(dx, dy) || 1;
+        var nw = xf([dy / ln, -dx / ln, 0], L); norms.push(nw); vis.push(dot(nw, cdir) > 1e-6);
+      }
+      for (var i = 0; i < n; i++) {
+        var j = (i + 1) % n, pv = (i - 1 + n) % n, nx = j;
+        eF.push([F[i], F[j]]); eB.push([B[i], B[j]]);
+        var quad = [F[i], F[j], B[j], B[i]];
+        var all = [[F[i], F[j]], [B[i], B[j]], [F[i], B[i]], [F[j], B[j]]];
+        var ed = [[F[i], F[j]], [B[i], B[j]]];
+        if (c.s[i] || !vis[pv]) ed.push([F[i], B[i]]);
+        if (c.s[j] || !vis[nx]) ed.push([F[j], B[j]]);
+        faces.push({poly: [quad], edges: ed, all: all, vis: vis[i], n: norms[i], z: (F[i][2] + F[j][2] + B[i][2] + B[j][2]) / 4});
+      }
+    });
+    function avg(cs) { var s = 0, m = 0; cs[0].forEach(function (p) { s += p[2]; m++; }); return s / m; }
+    faces.push({poly: capF, edges: eF, all: eF, vis: dot(nf, cdir) > 1e-6, n: nf, z: avg(capF), cap: 1});
+    faces.push({poly: capB, edges: eB, all: eB, vis: dot(nb, cdir) > 1e-6, n: nb, z: avg(capB), cap: 1});
+  });
+  faces.sort(function (a, b) { return a.z - b.z; });
+  return {faces: faces, cdir: cdir};
+}
+function hex2rgb(h) { h = h.replace("#", ""); return [parseInt(h.substr(0, 2), 16), parseInt(h.substr(2, 2), 16), parseInt(h.substr(4, 2), 16)]; }
+function mix(a, b, t) { var A = hex2rgb(a), B = hex2rgb(b); return "rgb(" + [0, 1, 2].map(function (i) { return Math.round(A[i] + (B[i] - A[i]) * t); }).join(",") + ")"; }
+function f1(v) { return Math.round(v * 10) / 10; }
+function polyD(cs) { return cs.map(function (c) { return "M" + c.map(function (p) { return f1(p[0]) + " " + f1(p[1]); }).join("L") + "Z"; }).join(""); }
+function edgeD(es) { return es.map(function (e) { return "M" + f1(e[0][0]) + " " + f1(e[0][1]) + "L" + f1(e[1][0]) + " " + f1(e[1][1]); }).join(""); }
+function toSVG(S, W, H) {
+  var sc = scene(S, W, H), out = [], sw = S.sw, L = [.35, .8, .5], ll = Math.hypot(L[0], L[1], L[2]);
+  out.push('<rect width="' + W + '" height="' + H + '" fill="' + S.bg + '"/>');
+  var g = '<g stroke-linejoin="round" stroke-linecap="round">';
+  sc.faces.forEach(function (f) {
+    if (S.style === "wire") { g += '<path d="' + edgeD(f.all) + '" fill="none" stroke="' + S.line + '" stroke-width="' + (sw * .6) + '"/>'; return; }
+    if (!f.vis) return;
+    if (S.style === "line") {
+      g += '<path d="' + polyD(f.poly) + '" fill="' + S.bg + '" stroke="' + S.bg + '" stroke-width="0.6" fill-rule="evenodd"/>';
+      g += '<path d="' + edgeD(f.edges) + '" fill="none" stroke="' + S.line + '" stroke-width="' + sw + '"/>';
+    } else if (S.style === "solid") {
+      g += '<path d="' + polyD(f.poly) + '" fill="' + S.line + '" stroke="' + S.line + '" stroke-width="0.8" fill-rule="evenodd"/>';
+    } else {
+      var lam = Math.max(0, (f.n[0] * L[0] + f.n[1] * L[1] + f.n[2] * L[2]) / ll), c = mix(S.bg, S.line, f.cap ? 1 : .35 + .5 * (1 - lam));
+      g += '<path d="' + polyD(f.poly) + '" fill="' + c + '" stroke="' + c + '" stroke-width="0.8" fill-rule="evenodd"/>';
+      g += '<path d="' + edgeD(f.edges) + '" fill="none" stroke="' + S.bg + '" stroke-width="' + (sw * .5) + '"/>';
+    }
+  });
+  out.push(g + "</g>");
+  return out.join("");
+}
+</script>
+<script>
+var BASE = {zoom: 1, az: 36, el: 27, sw: 3, style: "line", line: "#20345c", bg: "#f7de8d", counter: true,
+  L: {T: {d: .6, x: -.68, y: 0, z: 0, ry: 0, rz: 0}, I: {d: .6, x: .04, y: 0, z: 0, ry: 0, rz: 0}, P: {d: .6, x: .72, y: 0, z: 0, ry: 0, rz: 0}}};
+function clone(o) { return JSON.parse(JSON.stringify(o)); }
+function P_(name, cam, L) { var s = clone(BASE); s.name = name; for (var k in cam) s[k] = cam[k]; for (var n in L) for (var k2 in L[n]) s.L[n][k2] = L[n][k2]; return s; }
+var BUILTIN = [
+  P_("Basis", {az: 0, el: 0}, {}),
+  P_("Blokken", {}, {}),
+  P_("Tip", {}, {T: {d: 1.15, x: -.8, ry: -27}, I: {d: .8, x: .02, rz: -18}, P: {d: 2.2, x: .8, z: -.5, ry: 19.8}}),
+  P_("Lang", {az: 52, el: 18, zoom: .78}, {T: {d: 3.2}, I: {d: 3.2}, P: {d: 3.2}}),
+  P_("Gestapeld", {az: 30, el: 24, zoom: .56}, {T: {d: .9, x: -.3, y: 1.12, ry: -20}, I: {d: .9, x: 0, y: 0}, P: {d: .9, x: .3, y: -1.12, ry: 20}}),
+  P_("Kantelpunt", {az: 24, el: 14}, {T: {d: .8, x: -.74}, I: {d: .8, x: .03, rz: -24}, P: {d: .8, x: .78, y: -.08, rz: -40, ry: 12}})
+];
+var USER = [];
+try { USER = JSON.parse(localStorage.getItem("tip-extrude-presets") || "[]"); } catch (e) {}
+var S = clone(BUILTIN[1]), sel = "T", anim = null, playing = false, rec = null;
+var svg = document.getElementById("svg");
+function draw() { svg.innerHTML = toSVG(S, 1280, 800); }
+var LC = [["d", "Diepte", .05, 5, .05], ["x", "Pos x", -2.5, 2.5, .01], ["y", "Pos y", -2, 2, .01], ["z", "Pos z", -3, 3, .01], ["ry", "Draai", -180, 180, 1], ["rz", "Kantel", -90, 90, 1]];
+var CC = [["zoom", "Zoom", .3, 3, .01], ["az", "Camera", -180, 180, 1], ["el", "Hoogte", -89, 89, 1], ["sw", "Lijndikte", .5, 12, .5]];
+function row(host, key, label, mn, mx, st, get, set) {
+  var d = document.createElement("label"); d.className = "tx-row";
+  d.innerHTML = "<span>" + label + "</span><input type=range min=" + mn + " max=" + mx + " step=" + st + "><span></span>";
+  var inp = d.children[1], out = d.children[2];
+  function fmt(v) { return st >= 1 ? Math.round(v) : (Math.round(v * 100) / 100).toFixed(2); }
+  inp.addEventListener("input", function () { stopAnim(); set(+inp.value); out.textContent = fmt(+inp.value); draw(); });
+  d.sync = function () { var v = get(); inp.value = v; out.textContent = fmt(v); };
+  host.appendChild(d); return d;
+}
+var rows = [];
+function buildLetterRows() {
+  var h = document.getElementById("letterCtl"); h.innerHTML = ""; rows = rows.filter(function (r) { return r.cam; });
+  LC.forEach(function (c) {
+    var r = row(h, c[0], c[1], c[2], c[3], c[4],
+      function () { return S.L[sel === "*" ? "I" : sel][c[0]]; },
+      function (v) { if (sel === "*") { var dlt = v - S.L.I[c[0]]; LET.forEach(function (n) { S.L[n][c[0]] += dlt; }); } else S.L[sel][c[0]] = v; });
+    rows.push(r); r.sync();
+  });
+}
+CC.forEach(function (c) { var r = row(document.getElementById("camCtl"), c[0], c[1], c[2], c[3], c[4], function () { return S[c[0]]; }, function (v) { S[c[0]] = v; }); r.cam = 1; rows.push(r); });
+function syncAll() {
+  rows.forEach(function (r) { r.sync(); });
+  document.querySelectorAll(".sb").forEach(function (b) { b.classList.toggle("on", b.dataset.s === S.style); });
+  document.getElementById("cLine").value = S.line; document.getElementById("cBg").value = S.bg;
+  document.getElementById("counter").checked = S.counter;
+}
+document.querySelectorAll(".lb").forEach(function (b) { b.onclick = function () { sel = b.dataset.l; document.querySelectorAll(".lb").forEach(function (x) { x.classList.toggle("on", x === b); }); buildLetterRows(); }; });
+document.querySelectorAll(".sb").forEach(function (b) { b.onclick = function () { S.style = b.dataset.s; syncAll(); draw(); }; });
+document.querySelectorAll(".cb").forEach(function (b) { b.onclick = function () { var c = b.dataset.c.split(","); S.line = c[0]; S.bg = c[1]; syncAll(); draw(); }; });
+document.getElementById("cLine").oninput = function (e) { S.line = e.target.value; draw(); };
+document.getElementById("cBg").oninput = function (e) { S.bg = e.target.value; draw(); };
+document.getElementById("counter").onchange = function (e) { S.counter = e.target.checked; draw(); };
+function ease(t) { return t === 0 ? 0 : t === 1 ? 1 : t < .5 ? Math.pow(2, 20 * t - 10) / 2 : (2 - Math.pow(2, -20 * t + 10)) / 2; }
+function lerpState(a, b, t) {
+  var o = clone(b); ["zoom", "az", "el", "sw"].forEach(function (k) { o[k] = a[k] + (b[k] - a[k]) * t; });
+  LET.forEach(function (n) { for (var k in b.L[n]) o.L[n][k] = a.L[n][k] + (b.L[n][k] - a.L[n][k]) * t; });
+  return o;
+}
+function stopAnim() { if (anim) cancelAnimationFrame(anim); anim = null; }
+function goTo(target, dur, done) {
+  stopAnim(); var from = clone(S), t0 = performance.now();
+  var tgt = clone(target); var da = ((tgt.az - from.az + 540) % 360) - 180; tgt.az = from.az + da;
+  S.style = tgt.style; S.line = tgt.line; S.bg = tgt.bg; S.counter = tgt.counter; from.style = tgt.style; from.line = tgt.line; from.bg = tgt.bg; from.counter = tgt.counter;
+  (function step(now) {
+    var t = Math.min(1, (now - t0) / dur); S = lerpState(from, tgt, ease(t)); draw();
+    if (t < 1) anim = requestAnimationFrame(step); else { anim = null; S.az = ((S.az + 540) % 360) - 180; syncAll(); if (done) done(); }
+  })(t0);
+}
+function allPresets() { return BUILTIN.concat(USER); }
+function buildPresetBar() {
+  var bar = document.getElementById("presetBar"); while (bar.children.length > 1) bar.removeChild(bar.lastChild);
+  allPresets().forEach(function (p, i) {
+    var b = document.createElement("button"); b.textContent = p.name; b.onclick = function () { playing = false; goTo(p, 1000); };
+    if (i >= BUILTIN.length) b.ondblclick = function () { USER.splice(i - BUILTIN.length, 1); persist(); buildPresetBar(); msg("Preset verwijderd"); };
+    bar.appendChild(b);
+  });
+}
+function persist() { try { localStorage.setItem("tip-extrude-presets", JSON.stringify(USER)); } catch (e) {} }
+function msg(t) { var m = document.getElementById("msg"); m.textContent = t; setTimeout(function () { if (m.textContent === t) m.textContent = ""; }, 2600); }
+document.getElementById("save").onclick = function () { var s = clone(S); s.name = "Eigen " + (USER.length + 1); USER.push(s); persist(); buildPresetBar(); msg("Bewaard als " + s.name + " (dubbelklik om te verwijderen)"); };
+function playAll(done) {
+  var list = allPresets(), i = 0; playing = true;
+  (function next() { if (!playing) return; goTo(list[i % list.length], 1200, function () { i++; if (done && i >= list.length) { setTimeout(function () { goTo(list[0], 1200, done); }, 500); return; } setTimeout(next, 600); }); })();
+}
+document.getElementById("play").onclick = function () { playAll(); };
+document.getElementById("stop").onclick = function () { playing = false; stopAnim(); syncAll(); if (rec) rec.stop(); };
+function download(blob, name) { var a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); a.remove(); }
+document.getElementById("dl").onclick = function () {
+  var s = '<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="800" viewBox="0 0 1280 800">' + toSVG(S, 1280, 800) + "</svg>";
+  try { download(new Blob([s], {type: "image/svg+xml"}), "TIP-extrude.svg"); msg("SVG gedownload"); } catch (e) { msg("Downloaden lukt hier niet"); }
+};
+document.getElementById("rec").onclick = function () {
+  try {
+    var cv = document.createElement("canvas"); cv.width = 1280; cv.height = 800; var ctx = cv.getContext("2d");
+    var stream = cv.captureStream(30), chunks = []; rec = new MediaRecorder(stream, {mimeType: "video/webm"});
+    rec.ondataavailable = function (e) { chunks.push(e.data); };
+    rec.onstop = function () { rec = null; clearInterval(iv); download(new Blob(chunks, {type: "video/webm"}), "TIP-extrude.webm"); msg("Video gedownload"); };
+    var busy = false, iv = setInterval(function () {
+      if (busy) return; busy = true; var img = new Image();
+      img.onload = function () { ctx.drawImage(img, 0, 0); busy = false; };
+      img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="800">' + toSVG(S, 1280, 800) + "</svg>");
+    }, 33);
+    rec.start(); msg("Opnemen…");
+    playAll(function () { playing = false; if (rec) rec.stop(); });
+  } catch (e) { msg("Opnemen lukt hier niet"); }
+};
+var st = document.getElementById("stage"), drag = null;
+st.addEventListener("pointerdown", function (e) { stopAnim(); playing = false; drag = [e.clientX, e.clientY, S.az, S.el]; st.setPointerCapture(e.pointerId); });
+st.addEventListener("pointermove", function (e) { if (!drag) return; S.az = drag[2] - (e.clientX - drag[0]) * .4; S.el = Math.max(-89, Math.min(89, drag[3] + (e.clientY - drag[1]) * .4)); S.az = ((S.az + 540) % 360) - 180; draw(); });
+st.addEventListener("pointerup", function () { drag = null; syncAll(); });
+buildLetterRows(); buildPresetBar(); syncAll(); draw();
+</script>

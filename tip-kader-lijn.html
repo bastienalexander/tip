@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="nl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kader lijn</title>
+<style>
+:root{--bg:#ecebe7;--ink:#141414;--mute:#6b6a66;--line:#c9c7c0;--card:#f6f5f2}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161616;--ink:#f1f0ec;--mute:#9a9893;--line:#3a3936;--card:#1f1f1e}}
+:root[data-theme="dark"]{--bg:#161616;--ink:#f1f0ec;--mute:#9a9893;--line:#3a3936;--card:#1f1f1e}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 "Helvetica Neue",Helvetica,Arial,sans-serif}
+main{max-width:1320px;margin:0 auto;padding:28px 16px 48px}
+h1{font-size:32px;font-weight:600;margin:0 0 4px;letter-spacing:-.01em}
+p.lead{margin:0 0 18px;color:var(--mute);max-width:760px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 10px;font-size:13px;color:var(--mute)}
+.row .lab{min-width:70px}
+button{font:inherit;padding:6px 12px;border-radius:8px;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer}
+button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+input[type=range]{accent-color:var(--ink)}
+#scrub{flex:1;min-width:160px}
+.stagewrap{margin-top:14px;border-radius:12px;overflow:hidden;border:1px solid var(--line)}
+svg#stage{display:block;width:100%;height:auto}
+.stagewrap:fullscreen{display:flex;align-items:center;justify-content:center;background:#000;border:0;border-radius:0}
+.stagewrap:fullscreen svg{max-height:100vh;width:auto;max-width:100vw}
+#t{font-variant-numeric:tabular-nums;min-width:42px}
+html.embed main{max-width:none;padding:0}html.embed main>*:not(.stagewrap){display:none}html.embed .stagewrap{margin:0;border:0;border-radius:0}html.embed body{overflow:hidden}
+</style><script>if(/embed/.test(location.search))document.documentElement.classList.add('embed')</script><style>.back{display:inline-flex;align-items:center;gap:6px;margin:0 0 16px;font:600 14px/1 "Helvetica Neue",Helvetica,Arial,sans-serif;text-decoration:none;color:#fff;background:#141414;padding:9px 14px 9px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.25)}.back:hover{background:#333}.back:focus-visible{outline:2px solid #E6177A;outline-offset:2px}html.embed .back{display:none}@media print{.back{display:none}}</style><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600&display=swap"><style id="sitefont">/* letter van de site: Space Grotesk (Light voor tekst); beeldmerken en animaties blijven Neue Haas */
+body,button,select,input,label,.back{font-family:"Space Grotesk",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif}
+body{font-weight:300;letter-spacing:.005em}
+h1,h2,h3,b,strong,.num,.back,button.on,button.big,.cap a,.demo a.open{font-weight:500}
+h1{letter-spacing:-.02em}
+</style></head><body><main><a class="back" href="index.html" aria-label="Terug naar het overzicht">← Overzicht</a>
+<h1>Kader · de lijn tekent</h1>
+<p class="lead">Richting 01. Eén doorlopende draad begint in de T, trekt het kader rond en eindigt in de L. Daarna worden de letters gestikt, en aan het eind wordt de draad er weer uitgetrokken.</p>
+<div class="row"><span class="lab">Kleur</span><span id="themes"></span></div>
+<div class="row"><span class="lab">Lijn</span><button id="bStitch">Stiksel</button><button id="bMarch" class="on">Stiksel loopt</button><button id="bNeedle" class="on">Naald</button><span style="width:10px"></span>dikte <input id="w" type="range" min="2" max="14" step=".5" value="6.5"></div>
+<div class="row"><span class="lab">Tijd</span><button id="bPlay" class="on">Pauze</button><input id="scrub" type="range" min="0" max="10.4" step=".01" value="0"><span id="t">0.0s</span>
+<select id="spd"><option value=".5">0,5×</option><option value="1" selected>1×</option><option value="1.5">1,5×</option></select><button id="bFs">Volledig scherm</button></div>
+<div class="stagewrap" id="wrap">
+<svg id="stage" viewBox="-60 -60 1320 828" xmlns="http://www.w3.org/2000/svg">
+ <rect id="bg" x="-60" y="-60" width="1320" height="828"/>
+ <defs><mask id="m" maskUnits="userSpaceOnUse" x="-60" y="-60" width="1320" height="828"><g id="mg" fill="none" stroke="#fff" stroke-miterlimit="6.91" stroke-linecap="square"></g></mask></defs>
+ <g id="vis" fill="none" mask="url(#m)" stroke-miterlimit="6.91"></g>
+ <circle id="needle" r="9"/>
+</svg></div>
+</main>
+<svg width="0" height="0" style="position:absolute"><g id="src">
+<path data-row="0" d="M737.85,110.76V3.25h-28.6v133.13h90.33M611.49,110.76v-29.52h54.13v-25.63h-54.13v-26.64h69.35V3.25h-97.95v133.13h99.9v-25.62H611.49ZM520.23,136.38h28.59V3.25h-28.59V136.38ZM394.8,3.25v25.72h38.06v107.41h28.51V28.97h37.97V3.25H394.8ZM324.52,87.92l32.31,48.46h32.3l-46.6-69.44L385.33,3.25h-32.31l-28.5,42.8-28.5-42.8h-32.4l42.79,63.69-46.6,69.44h32.4L324.52,87.92ZM177.27,110.76v-29.52h54.13v-25.63h-54.13v-26.64h69.35V3.25h-97.94v133.13h99.89v-25.62H177.27ZM23.25,3.25h104.54v25.72h-37.97v107.41h-28.51V28.97H3.25v691.78h1193.5V110.76h-458.9V3.25h-28.6v133.13h90.33M611.49,110.76v-29.52h54.13v-25.63h-54.13v-26.64h69.35V3.25h-97.95v133.13h99.9v-25.62H611.49ZM520.23,136.38h28.59V3.25h-28.59V136.38ZM394.8,3.25v25.72h38.06v107.41h28.51V28.97h37.97V3.25H394.8ZM324.52,87.92l32.31,48.46h32.3l-46.6-69.44L385.33,3.25h-32.31l-28.5,42.8-28.5-42.8h-32.4l42.79,63.69-46.6,69.44h32.4L324.52,87.92ZM177.27,110.76v-29.52h54.13v-25.63h-54.13v-26.64h69.35V3.25h-97.94v133.13h99.89v-25.62H177.27Z"/>
+<path data-row="1" d="M1009.16,280.93v-29.53h54.13v-25.62h-54.13v-26.65h69.35v-25.71h-97.94v133.13h99.89v-25.62H1009.16ZM918.44,306.55h28.6v-133.13h-28.6V306.55ZM793.55,173.42v25.71h38.07v107.42h28.5v-107.42h37.97v-25.71H793.55ZM757.98,275.17l11.42,31.38h30.45l-52.36-133.13h-30.36l-52.36,133.13h30.45l11.42-31.38H757.98ZM748.51,250.47h-32.4l16.25-43.72L748.51,250.47ZM595.03,306.55h30.45l49.48-133.13h-30.45l-34.26,98.87-34.16-98.87h-30.45L595.03,306.55ZM395.96,239.98q0,28.69,20.94,49.07t51.34,20.38,51.34-20.38,20.93-49.07-20.93-49.02-51.34-20.33-51.34,20.33T395.96,239.98ZM425.48,240.03q0-18.43,12.45-31.1,12.44-12.68,30.31-12.68,17.87,0,30.31,12.68,12.44,12.67,12.44,31.1,0,18.43-12.44,31.05-12.44,12.63-30.31,12.63-17.87,0-30.31-12.63Q425.48,258.46,425.48,240.03ZM341.45,173.42v84.67l-65.55-84.67h-24.79v133.13h28.6v-84.58l65.54,84.58h24.7v-133.13H341.45ZM188.99,173.42v84.67l-65.55-84.67h-24.79v133.13h28.6v-84.58l65.54,84.58h24.7v-133.13H188.99ZM36.53,306.55h28.59v-133.13h-28.59V306.55Z"/>
+<path data-row="2" d="M1001.46,401.61l-45.59-58.03h-25.72v133.13h28.6v-88.38l42.71,54.13,42.8-54.5v88.75h28.5v-133.13h-25.25L1001.46,401.61ZM871.94,387.31q0,7.24-5.15,12.21t-12.96,4.96h-29.43v-35.18h29.43q7.8,0,12.96,5.1Q871.94,379.51,871.94,387.31ZM795.81,476.71h28.59v-46.6h24.7l25.62,46.6h30.46l-28.51-50.41,2.42-1.3q2.5-1.11,6.03-4.18,3.53-3.06,6.92-7.33,3.39-4.27,5.89-11.23,2.51-6.97,2.51-14.95,0-18.38-12.95-31.06-12.95-12.67-32.73-12.67h-58.95v133.13ZM625.35,410.15q0,28.69,20.93,49.06,20.94,20.38,51.34,20.38,30.41,0,51.35-20.38,20.93-20.38,20.93-49.06,0-28.69-20.93-49.02-20.94-20.33-51.35-20.33-30.4,0-51.34,20.33Q625.35,381.46,625.35,410.15ZM654.87,410.19q0-18.43,12.44-31.1,12.44-12.67,30.31-12.67,17.88,0,30.32,12.67,12.44,12.67,12.44,31.1,0,18.43-12.44,31.06-12.44,12.63-30.32,12.63-17.87,0-30.31-12.63Q654.87,428.62,654.87,410.19ZM514.86,343.58v133.13h28.6v-52.26h54.12v-25.72h-54.12v-29.43h69.35v-25.72H514.86ZM390.08,343.58v25.72h38.06v107.41h28.51v-107.41h37.97v-25.72H390.08ZM354.61,445.33l11.42,31.38h30.45l-52.36-133.13h-30.36l-52.36,133.13h30.45l11.42-31.38H354.61ZM345.14,420.64h-32.4l16.25-43.73L345.14,420.64ZM255.45,476.71v-25.62h-61.74v-107.51h-28.59v133.13H255.45ZM91.67,369.3q8.55,0,14.25,5.52,5.71,5.53,5.71,13.51,0,7.98-5.71,13.46-5.7,5.48-14.25,5.48h-26.55v-37.97H91.67ZM36.53,343.58v133.13h28.59v-43.72h27.48q20.61,0,34.07-12.86,13.47-12.86,13.47-31.85,0-18.98-13.51-31.84-13.51-12.86-34.03-12.86H36.53Z"/>
+</g></svg>
+<script>
+const NS="http://www.w3.org/2000/svg";
+const THEMES=[["Turquoise","#5BBFC0","#fff"],["Wit","#ffffff","#141414"],["Zwart","#141414","#ffffff"],["Indigo","#2433D6","#ffffff"]];
+const LOOP=10.4;
+let theme=0,stitch=false,march=true,needleOn=true,playing=true,speed=1,w=6.5,t=0,last=null;
+// subpaden: elke letter apart, dubbele eruit
+let subs=[];
+document.querySelectorAll('#src path').forEach(p=>{const row=+p.dataset.row;
+ p.getAttribute('d').split(/(?=M)/).forEach(s=>{s=s.trim();if(s)subs.push({d:s,row});});});
+const seen=new Set();subs=subs.filter(s=>!seen.has(s.d)&&seen.add(s.d));
+subs=subs.filter(s=>{const tail=s.d.replace(/^M[-\d.,]+/,'');return tail.length<15||!subs.some(o=>o!==s&&o.d.length>s.d.length&&o.d.includes(tail));});
+const mg=document.getElementById('mg'),vis=document.getElementById('vis'),needle=document.getElementById('needle');
+subs.forEach(s=>{s.m=document.createElementNS(NS,'path');s.m.setAttribute('d',s.d);mg.appendChild(s.m);
+ s.v=document.createElementNS(NS,'path');s.v.setAttribute('d',s.d);vis.appendChild(s.v);
+ s.len=s.m.getTotalLength();s.x=s.m.getBBox().x;});
+const hero=subs.reduce((a,b)=>b.len>a.len?b:a);
+const letters=subs.filter(s=>s!==hero).sort((a,b)=>a.row-b.row||a.x-b.x);
+letters.forEach((s,i)=>{const f=i/(letters.length-1);s.in=2.6+f*2.6;s.out=7.6+f*1.2;});
+hero.in=.4;hero.out=8.4;
+const ease=x=>x<=0?0:x>=1?1:x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;
+const HERO_IN=3.2,LET_IN=1.1,LET_OUT=.8,HERO_OUT=1.6;
+function render(){
+ const [,bg,fg]=THEMES[theme];
+ document.getElementById('bg').setAttribute('fill',bg);
+ vis.setAttribute('stroke',fg);vis.setAttribute('stroke-width',w);
+ mg.setAttribute('stroke-width',w+6);
+ vis.setAttribute('stroke-dasharray',stitch?`${w*2.2} ${w*1.5}`:'none');
+ vis.setAttribute('stroke-dashoffset',stitch&&march?-t*40:0);
+ needle.setAttribute('fill',fg);needle.setAttribute('r',w*1.3);
+ let np=null;
+ subs.forEach(s=>{const isH=s===hero,p=ease((t-s.in)/(isH?HERO_IN:LET_IN)),q=ease((t-s.out)/(isH?HERO_OUT:LET_OUT));
+  const L=s.len,done=p>=1&&q<=0; // helemaal getekend: geen streepjespatroon meer, zodat begin- en eindpunt op de hoek sluiten
+  s.m.setAttribute('stroke-dasharray',done?'none':`${L} ${L+2}`);
+  s.m.setAttribute('stroke-dashoffset',q>0?-q*L:L*(1-p));
+  if(isH){if(p>0&&p<1)np=s.m.getPointAtLength(p*L);else if(q>0&&q<1)np=s.m.getPointAtLength(q*L);}});
+ needle.style.display=needleOn&&np?'':'none';if(np){needle.setAttribute('cx',np.x);needle.setAttribute('cy',np.y);}
+ document.getElementById('scrub').value=t;document.getElementById('t').textContent=t.toFixed(1)+'s';}
+function loop(ts){if(last!==null&&playing){t=(t+(ts-last)/1000*speed)%LOOP;}last=ts;render();requestAnimationFrame(loop);}
+// knoppen
+const th=document.getElementById('themes');
+THEMES.forEach((x,i)=>{const b=document.createElement('button');b.textContent=x[0];b.className=i===theme?'on':'';b.onclick=()=>{theme=i;th.querySelectorAll('button').forEach((z,j)=>z.classList.toggle('on',j===i));};th.appendChild(b);});
+const tg=(id,fn)=>{const b=document.getElementById(id);b.onclick=()=>b.classList.toggle('on',fn());};
+tg('bStitch',()=>stitch=!stitch);tg('bMarch',()=>march=!march);tg('bNeedle',()=>needleOn=!needleOn);
+tg('bPlay',()=>{playing=!playing;document.getElementById('bPlay').textContent=playing?'Pauze':'Afspelen';return playing;});
+document.getElementById('scrub').oninput=e=>{t=+e.target.value;};
+document.getElementById('spd').onchange=e=>speed=+e.target.value;
+document.getElementById('w').oninput=e=>w=+e.target.value;
+document.getElementById('bFs').onclick=()=>{const el=document.getElementById('wrap');document.fullscreenElement?document.exitFullscreen():el.requestFullscreen&&el.requestFullscreen();};
+document.addEventListener('keydown',e=>{if(e.code==='Space'){e.preventDefault();document.getElementById('bPlay').click();}});
+requestAnimationFrame(loop);
+</script><script>if(!document.fullscreenEnabled){const b=document.getElementById("bFs");if(b)b.style.display="none";}</script><script src="tip-ui.js"></script></body></html>

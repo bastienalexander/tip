@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="nl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kantelpunt</title>
+<style>
+:root{--bg:#ecebe7;--ink:#141414;--mute:#6b6a66;--line:#c9c7c0}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161616;--ink:#f1f0ec;--mute:#9a9893;--line:#3a3936}}
+:root[data-theme="dark"]{--bg:#161616;--ink:#f1f0ec;--mute:#9a9893;--line:#3a3936}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 "Helvetica Neue",Helvetica,Arial,sans-serif}
+main{max-width:1320px;margin:0 auto;padding:28px 16px 48px}
+h1{font-size:32px;font-weight:600;margin:0 0 4px;letter-spacing:-.01em}
+p.lead{margin:0 0 18px;color:var(--mute);max-width:780px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 10px;font-size:13px;color:var(--mute)}
+.row .lab{min-width:70px}
+button,select{font:inherit;padding:6px 12px;border-radius:8px;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer}
+button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+input[type=range]{accent-color:var(--ink)}
+#scrub{flex:1;min-width:160px}
+#t{font-variant-numeric:tabular-nums;min-width:42px}
+.stagewrap{margin-top:14px;border-radius:12px;overflow:hidden;border:1px solid var(--line)}
+svg#stage{display:block;width:100%;height:auto}
+.stagewrap:fullscreen{display:flex;align-items:center;justify-content:center;background:#000;border:0;border-radius:0}
+.stagewrap:fullscreen svg{max-height:100vh;width:auto;max-width:100vw}
+.note{font-size:13px;color:var(--mute);margin:10px 0 0;max-width:780px}
+html.embed main{max-width:none;padding:0}html.embed main>*:not(.stagewrap){display:none}html.embed .stagewrap{margin:0;border:0;border-radius:0}html.embed body{overflow:hidden}
+</style><script>if(/embed/.test(location.search))document.documentElement.classList.add('embed')</script><style>.back{display:inline-flex;align-items:center;gap:6px;margin:0 0 16px;font:600 14px/1 "Helvetica Neue",Helvetica,Arial,sans-serif;text-decoration:none;color:#fff;background:#141414;padding:9px 14px 9px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.25)}.back:hover{background:#333}.back:focus-visible{outline:2px solid #E6177A;outline-offset:2px}html.embed .back{display:none}@media print{.back{display:none}}</style><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600&display=swap"><style id="sitefont">/* letter van de site: Space Grotesk (Light voor tekst); beeldmerken en animaties blijven Neue Haas */
+body,button,select,input,label,.back{font-family:"Space Grotesk",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif}
+body{font-weight:300;letter-spacing:.005em}
+h1,h2,h3,b,strong,.num,.back,button.on,button.big,.cap a,.demo a.open{font-weight:500}
+h1{letter-spacing:-.02em}
+</style></head><body><main><a class="back" href="index.html" aria-label="Terug naar het overzicht">← Overzicht</a>
+<h1>Kantelpunt · de I valt om</h1>
+<p class="lead">Richting 04. De letters zijn scheef gezette blokken. Ze klappen in één keer om van T\P naar T/P, zonder rechte tussenstand: eerst spanning, dan het kantelpunt, dan naveren. Beweeg je muis of vinger over het beeld: jij bent het kantelpunt. In "Herhaling" schuift TIP eindeloos omhoog, om en om T\P en T/P, en klapt de hele kolom op de maat tegelijk om.</p>
+<div class="row"><span class="lab">Scène</span><span id="scenes"></span></div>
+<div class="row"><span class="lab">Kleur</span><span id="themes"></span></div>
+<div class="row"><span class="lab">Opties</span><button id="bLogo" class="on">Logo in de golf</button><button id="bGrid">Herhaling/Domino: heel vlak</button><span style="width:10px"></span>schuinte <input id="k" type="range" min=".12" max=".5" step=".01" value=".268"></div>
+<div class="row"><span class="lab">Tijd</span><button id="bPlay" class="on">Pauze</button><input id="scrub" type="range" min="0" max="9" step=".01" value="0"><span id="t">0.0s</span>
+<select id="spd"><option value=".5">0,5×</option><option value="1" selected>1×</option><option value="1.5">1,5×</option></select><button id="bFs">Volledig scherm</button></div>
+<div class="stagewrap" id="wrap"><svg id="stage" viewBox="0 0 1600 900" xmlns="http://www.w3.org/2000/svg"><rect id="bg" width="1600" height="900"/><g id="layer"></g></svg></div>
+<p class="note">Spatie = pauze. De eerste beelden zijn de pagina's uit de PDF: Tik-tak begint als p69 (T\P), Herhaling en Domino als p74, Golf als p82/p83.</p>
+</main>
+<script>
+const NS="http://www.w3.org/2000/svg",LOOP=9,KO=77.18/288; // schuinte uit TIP1.svg
+let K=KO;
+// letters uit web exports/SVG/TIP1.svg (T\P); ORIG = hun eigen schuinte
+const PATHS={T:"M222.72,88.32L246.53,0H23.81L0,88.32h64.13L10.75,288h94.47l53.37-199.68H222.72Z",
+ I:"M353.85,0h-94.46l77.18,288h94.47L353.85,0Z",
+ P:"M606.41,211.2c38.02,0,69.5-10.37,91.01-31.1,26.11-24.96,39.55-71.04,39.55-107.14,0-48.38-30.72-72.96-93.31-72.96h-114.05l-77.18,288h94.46l20.74-76.8H606.41ZM611.4,74.88c17.67,0,25.73,6.53,25.73,19.58,0,21.51-12.29,45.7-43.39,45.7h-7.3l17.67-65.28H611.4Z"};
+const ORIG={T:-KO,I:KO,P:-KO};
+// T/P: precies TIP2.svg (eigen spatiëring)
+const PATHS2={T:"M246.53,88.32L222.72,0H0l23.81,88.32h64.13l53.37,199.68h94.47l-53.38-199.68H246.53Z",I:"M356.5,0l-77.18,288h94.46L450.97,0H356.5Z",P:"M640.82,211.2c62.59,0,93.31-24.58,93.31-72.96,0-36.1-13.44-82.18-39.55-107.14-21.51-20.73-53-31.1-91.01-31.1h-133.25l77.18,288h94.47l-20.74-76.8H640.82ZM592.05,74.88c31.1,0,43.39,24.19,43.39,45.7,0,13.05-8.06,19.58-25.73,19.58h-7.29l-17.67-65.28H592.05Z"};
+const ORIG2={T:KO,I:-KO,P:KO};
+const THEMES=[["Wit","#ffffff","#141414"],["Zwart","#141414","#ffffff"],["Blauw","#2F4BEF","#ffffff"],["Lichtblauw","#C3CBFF","#141414"],["Ecru","#F3F0EA","#2F4BEF"]];
+let theme=0,scene=0,playing=true,speed=1,t=0,last=null,logoInWave=true,grid=false;
+const layer=document.getElementById('layer');
+// veer: 0 → 1 met doorschieten
+const f=x=>x<=0?0:1-Math.exp(-5*x)*Math.cos(9*x);
+const mk=(tag,at,par)=>{const e=document.createElementNS(NS,tag);for(const k in at)e.setAttribute(k,at[k]);(par||layer).appendChild(e);return e;};
+// één TIP-logo; cI = schuinte van de I, cTP = schuinte van T en P (in eenheden van K)
+function makeLogo(x,y,h,par){const g=mk('g',{transform:`translate(${x},${y}) scale(${h/288})`},par);
+ const L={g,set:1};for(const c of"TIP")L[c]=mk('path',{d:PATHS[c]},g);return L;}
+function setLogo(L,sI,sTP){const set=sI>=0?1:2,P=set===1?PATHS:PATHS2,O=set===1?ORIG:ORIG2; // in rust: exact TIP1 of TIP2
+ if(L.set!==set){for(const c of"TIP")L[c].setAttribute('d',P[c]);L.set=set;}
+ for(const c of"TIP"){const d=(c==='I'?sI:sTP)*K-O[c];L[c].setAttribute('transform',`matrix(1,0,${d},1,${-d*144},0)`);}}
+// scènes
+// klap: springt in één keer om en veert na; komt nooit door het rechte TIP
+const SNAP=x=>1+.38*Math.exp(-6*x)*Math.cos(13*x);
+function flip(t,times){let n=0,lt=0;for(const a of times)if(t>=a){n++;lt=a;}
+ let s=(n%2?-1:1)*(n?SNAP(t-lt):1);
+ const nx=times.find(a=>a>t);if(nx!==undefined&&nx-t<.6){const u=1-(nx-t)/.6;s*=1-.16*u*u+.035*u*Math.sin(t*70);} // spanning vlak voor de klap
+ return s;}
+// jij bent het kantelpunt: muis of vinger bepaalt waar het omklapt
+const IA={p:null,last:-1e9},STG=document.getElementById('stage');STG.style.touchAction='none';
+const iaOn=()=>IA.p&&performance.now()/1000-IA.last<4;
+function ia(o,want){const now=performance.now()/1000;if(o.st===undefined){o.st=want;o.ts=-9;}if(o.st!==want){o.st=want;o.ts=now;}return want*SNAP(now-o.ts);} // klapt om met naveren
+function iaMove(ev){const m=STG.getScreenCTM().inverse(),q=new DOMPoint(ev.clientX,ev.clientY).matrixTransform(m);IA.p=[q.x,q.y];IA.last=performance.now()/1000;}
+STG.addEventListener('pointermove',iaMove);STG.addEventListener('pointerdown',iaMove);STG.addEventListener('pointerleave',()=>{IA.last=performance.now()/1000-3;});
+const S=[
+ {n:"Tik-tak",build(){this.L=makeLogo(800-368*1.35,450-144*1.35,288*1.35);},
+  draw(t){if(iaOn()){const s=ia(this,IA.p[0]<800?1:-1);setLogo(this.L,s,-s);return;}this.st=undefined;const T=[1.3,3.55,5.8,8.05];setLogo(this.L,flip(t,T),-flip(t,T));}},
+ {n:"Herhaling",build(){this.items=[];const h=grid?62:84,pitch=h*1.08,w=737*h/288,cols=grid?Math.floor(1600/(w+70)):1,gx=grid?(1600-cols*w)/(cols+1):0;
+   const R=Math.ceil(900/pitch)+3;this.p={h,pitch,R,v:6*pitch/LOOP};
+   for(let c=0;c<cols;c++)for(let i=0;i<R;i++){const x=grid?gx+c*(w+gx):800-w/2;this.items.push({L:makeLogo(x,0,h),i,c,x});}},
+  draw(t){const{h,pitch,R,v}=this.p,H=R*pitch,o=t*v;
+   for(const it of this.items){const y=(((it.i*pitch-o+it.c*pitch*.5)%H)+H)%H-pitch*1.5,yc=y+h/2;
+    it.L.g.setAttribute('transform',`translate(${it.x},${y}) scale(${h/288})`);
+    const s=(it.i%2?-1:1)*(iaOn()?ia(it,IA.p[0]<800?1:-1):flip(t,[1.5,3.75,6,8.25])); // om en om T\\P en T/P; de hele kolom klapt samen om, naar de kant van je muis
+    setLogo(it.L,s,-s);}}},
+ {n:"Domino",build(){this.items=[];const h=grid?62:84,pitch=h*1.08,w=737*h/288,cols=grid?Math.floor(1600/(w+70)):1,gx=grid?(1600-cols*w)/(cols+1):0;
+   const rows=Math.ceil(900/pitch)+2;
+   for(let c=0;c<cols;c++)for(let r=0;r<rows;r++){const x=grid?gx+c*(w+gx):800-w/2,y=-pitch*.6+r*pitch;
+    this.items.push({L:makeLogo(x,y,h),yc:y+h/2,a:.8+r*.13+c*.18,b:4.9+(rows-1-r)*.13+c*.18});}},
+  draw(t){const on=iaOn();for(const it of this.items){const s=on?ia(it,it.yc<IA.p[1]?-1:1):flip(t,[it.a,it.b]);if(!on)it.st=undefined;setLogo(it.L,s,-s);}}},
+ {n:"Golf",build(){this.items=[];const pitch=29,w=15,h=50,rp=68;const rows=Math.ceil(900/rp)+1,cols=Math.ceil(1600/pitch)+2;
+   const lh=h,lw=737*lh/288;
+   for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){const cx=c*pitch-10,cy=22+r*rp+h/2;
+    if(logoInWave&&r===0&&cx<lw+30)continue;
+    const e=mk('rect',{x:cx-w/2,y:cy-h/2,width:w,height:h});
+    const d=.5+cx/1600*2.4+r*.05;this.items.push({e,cx,cy,base:r%2?-1:1,a:d,b:d+4.3});}
+   if(logoInWave)this.logo=makeLogo(10,22+h/2-lh/2,lh);else this.logo=null;},
+  draw(t){const KS=K*1.7,on=iaOn();for(const it of this.items){const f=on?ia(it,it.cx<IA.p[0]?-1:1):flip(t,[it.a,it.b]);if(!on)it.st=undefined;const s=it.base*f*KS;it.e.setAttribute('transform',`matrix(1,0,${s},1,${-s*it.cy},0)`);}
+   if(this.logo){const f=on?ia(this.logo,40<IA.p[0]?-1:1):flip(t,[.45,4.75]);if(!on)this.logo.st=undefined;setLogo(this.logo,f,-f);}}}];
+function build(){layer.innerHTML='';S[scene].build();}
+function render(){const[,bg,fg]=THEMES[theme];document.getElementById('bg').setAttribute('fill',bg);layer.setAttribute('fill',fg);
+ S[scene].draw(t);document.getElementById('scrub').value=t;document.getElementById('t').textContent=t.toFixed(1)+'s';}
+function loop(ts){if(last!==null&&playing&&(!iaOn()||scene===1))t=(t+(ts-last)/1000*speed)%LOOP;last=ts;render();requestAnimationFrame(loop);}
+// knoppen
+function group(id,list,get,set){const el=document.getElementById(id);list.forEach((x,i)=>{const b=document.createElement('button');b.textContent=x;b.classList.toggle('on',i===get());
+ b.onclick=()=>{set(i);el.querySelectorAll('button').forEach((z,j)=>z.classList.toggle('on',j===i));};el.appendChild(b);});}
+group('scenes',S.map(s=>s.n),()=>scene,i=>{scene=i;t=0;build();});
+group('themes',THEMES.map(x=>x[0]),()=>theme,i=>theme=i);
+const tg=(id,fn)=>{const b=document.getElementById(id);b.onclick=()=>b.classList.toggle('on',fn());};
+tg('bLogo',()=>{logoInWave=!logoInWave;build();return logoInWave;});
+tg('bGrid',()=>{grid=!grid;build();return grid;});
+tg('bPlay',()=>{playing=!playing;document.getElementById('bPlay').textContent=playing?'Pauze':'Afspelen';return playing;});
+document.getElementById('scrub').oninput=e=>t=+e.target.value;
+document.getElementById('spd').onchange=e=>speed=+e.target.value;
+document.getElementById('k').oninput=e=>K=+e.target.value;
+document.getElementById('bFs').onclick=()=>{const el=document.getElementById('wrap');document.fullscreenElement?document.exitFullscreen():el.requestFullscreen&&el.requestFullscreen();};
+document.addEventListener('keydown',e=>{if(e.code==='Space'){e.preventDefault();document.getElementById('bPlay').click();}});
+build();requestAnimationFrame(loop);
+</script><script>if(!document.fullscreenEnabled){const b=document.getElementById("bFs");if(b)b.style.display="none";}</script><script src="tip-ui.js"></script></body></html>

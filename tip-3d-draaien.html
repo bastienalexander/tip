@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="nl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Platform 3D</title>
+<link rel="stylesheet" href="https://use.typekit.net/xcs1asb.css">
+<style>
+@font-face{font-family:"TIP NHG";src:local("NeueHaasDisplay-Mediu"),local("NHaasGroteskDSPro-65Md"),local("Neue Haas Grotesk Display Pro 65 Medium"),url("fonts/NeueHaasDisplay-Mediu.ttf") format("truetype")}
+</style>
+<style>
+:root{--font-sans:system-ui,-apple-system,sans-serif;--color-text-primary:#141414;--color-text-secondary:#6b6a66;--color-border-secondary:#c9c7c0;--color-background-primary:#ffffff}
+html,body{background:#fff}
+body{margin:0;padding:24px 16px;max-width:1100px;margin:0 auto}
+</style><script>if(/embed/.test(location.search))document.documentElement.classList.add('embed')</script><style>.back{display:inline-flex;align-items:center;gap:6px;margin:0 0 16px;font:600 14px/1 "Helvetica Neue",Helvetica,Arial,sans-serif;text-decoration:none;color:#fff;background:#141414;padding:9px 14px 9px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.25)}.back:hover{background:#333}.back:focus-visible{outline:2px solid #E6177A;outline-offset:2px}html.embed .back{display:none}@media print{.back{display:none}}</style><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600&display=swap"><style id="sitefont">/* letter van de site: Space Grotesk (Light voor tekst); beeldmerken en animaties blijven Neue Haas */
+body,button,select,input,label,.back{font-family:"Space Grotesk",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif}
+body{font-weight:300;letter-spacing:.005em}
+h1,h2,h3,b,strong,.num,.back,button.on,button.big,.cap a,.demo a.open{font-weight:500}
+h1{letter-spacing:-.02em}
+</style></head><body>
+<style>
+#t3{font-family:var(--font-sans,system-ui);color:var(--color-text-primary)}
+#t3 svg{width:100%;height:auto;display:block;max-height:640px;user-select:none;-webkit-user-select:none}
+html.embed body{padding:0;max-width:none;overflow:hidden}html.embed #t3 .ctl,html.embed #t3 .row{display:none}html.embed #t3 svg{max-height:none;height:100vh}
+#t3 .ctl{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px 18px;margin-top:8px;font-size:13px;color:var(--color-text-secondary)}
+#t3 label{display:flex;flex-direction:column;gap:4px}
+#t3 input[type=range]{width:100%}
+#t3 .row{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:10px;font-size:13px;color:var(--color-text-secondary)}
+#t3 button{font:inherit;padding:5px 11px;border-radius:8px;border:1px solid var(--color-border-secondary,#bbb);background:transparent;color:var(--color-text-primary);cursor:pointer;white-space:nowrap}
+#t3 button.on{background:var(--color-text-primary);color:var(--color-background-primary,#fff)}
+#t3 .sep{width:10px}
+</style>
+<div id="t3"><a class="back" href="index.html" aria-label="Terug naar het overzicht">← Overzicht</a>
+<svg id="t3S"></svg>
+<div class="ctl">
+<label>Draaien om Y-as <input type="range" id="amp" min="0" max="90" value="25"></label>
+<label>Kijken boven ↔ onder <input type="range" id="pit" min="0" max="50" value="0"></label>
+<label>Extrusie-diepte <input type="range" id="dep" min="50" max="200" value="125"></label>
+<label>Golf tussen lagen <input type="range" id="wav" min="0" max="100" value="40"></label>
+<label>Snelheid <input type="range" id="spd" min="0" max="100" value="40"></label>
+</div>
+<div class="row"><span>Stijl:</span><button id="sS" class="on">Silhouet</button><button id="sV">Vlakken</button><button id="sL">Lijn</button><span class="sep"></span><button id="bTick" class="on">Getikt</button><button id="bBase">Stilstaan op basis</button><button id="bP">P-woord wisselt</button><button id="bSS" class="on">Set 2 (a)</button></div>
+</div>
+<script>
+(()=>{
+const DEG=Math.PI/180,A0=18.9*DEG,H=189,C=7;
+const FONT="'TIP NHG',neue-haas-grotesk-display,'Neue Haas Grotesk Display Pro','Helvetica Neue',Helvetica,Arial,sans-serif";
+let ss=true;
+const S=[
+{words:["Textiel"],col:[255,79,0],w:598,D:1076,base:-30*DEG,tx:463,ty:514.5,lay:2},
+{words:["Innovatie"],col:[0,127,0],w:749,D:951,base:24*DEG,tx:817.5,ty:700.5,lay:1},
+{words:["Platform","Plek","Plaats","Podium","Proeftuin","Praktijk"],col:[255,255,0],w:792,D:928,base:-30*DEG,tx:587,ty:887.5,lay:0}];
+const ca0=Math.cos(A0),sa0=Math.sin(A0);
+for(const s of S){s.P=[s.tx,(s.lay+.5)*H,(s.ty+(s.lay+.5)*H*ca0)/sa0];}
+const cen=[0,0,0];for(const s of S){const st=Math.sin(s.base),ct=Math.cos(s.base),z=-s.D/2;cen[0]+=(s.P[0]+z*st)/3;cen[1]+=s.P[1]/3;cen[2]+=(s.P[2]+z*ct)/3;}
+for(const s of S){s.P=[s.P[0]-cen[0],s.P[1]-cen[1],s.P[2]-cen[2]];}
+const FACES=[
+{n:[0,0,1],c:[[0,0,0],[1,0,0],[1,1,0],[0,1,0]],t:1,s:1},
+{n:[0,0,-1],c:[[1,0,1],[0,0,1],[0,1,1],[1,1,1]],t:1,s:1},
+{n:[0,1,0],c:[[0,0,0],[1,0,0],[1,0,1],[0,0,1]],s:.84},
+{n:[0,-1,0],c:[[0,1,0],[1,1,0],[1,1,1],[0,1,1]],s:.6},
+{n:[1,0,0],c:[[1,0,0],[1,0,1],[1,1,1],[1,1,0]],s:.66},
+{n:[-1,0,0],c:[[0,0,0],[0,0,1],[0,1,1],[0,1,0]],s:.66}];
+const $=id=>document.getElementById(id),svg=$('t3S');
+const ctx=document.createElement('canvas').getContext('2d');
+const PAD=28,PADR=38,TOP=31;let FS=177; // marges zoals p37: links 27, rechts 38
+const cache={};
+// meten zoals het getekend wordt: zelfde letter, spatiëring en Set 2
+const MS=document.createElementNS('http://www.w3.org/2000/svg','svg');MS.setAttribute('width','0');MS.setAttribute('height','0');MS.style.position='absolute';document.body.appendChild(MS);
+const MT=document.createElementNS('http://www.w3.org/2000/svg','text');MS.appendChild(MT);
+function tw(word,size){MT.setAttribute('font-family',FONT);MT.setAttribute('font-size',size);MT.setAttribute('letter-spacing','-0.01em');MT.style.fontFeatureSettings=ss?'"ss02"':'normal';MT.textContent=word;return MT.getComputedTextLength();}
+function fitWords(){ctx.font="200px "+FONT;const cap=ctx.measureText("H").actualBoundingBoxAscent/200;
+ FS=(H-2*TOP)/cap;for(const k in cache)delete cache[k];
+ for(const s of S){s.ww=s.words.map(w=>Math.round(tw(w,FS)+PAD+PADR));s.w0=s.ww[0];if(s.wc===undefined)s.wc=s.w0;s.w=s.w0;s.off=0;}
+ fitView();}
+function fsz(word,w){const k=word+w;if(!(k in cache)){cache[k]=Math.min(1,(w-PAD-PADR)/tw(word,FS));}return FS*cache[k];}
+let style='sil',spin=false,base=false,tick=true;
+const TK=2.2,back=x=>x>=1?1:x<=0?0:1+1.9*Math.pow(x-1,3)+.9*Math.pow(x-1,2); // rustig: om de 2,2 s een slag, zacht naveren
+// getikt: elke tik maakt één blok een halve slag om de as, met kort naveren
+function turns(t,i){const n=Math.floor(t/TK),f=t-n*TK,cnt=k=>k<i?0:Math.floor((k-i)/3)+1;let c=cnt(n);if(n>=i&&(n-i)%3===0)c=c-1+back(f/.9);return c;}
+const grp=(ids,cur)=>ids.forEach(i=>$(i).classList.toggle('on',i===cur));
+$('sS').onclick=()=>{style='sil';grp(['sS','sV','sL'],'sS');};
+$('sV').onclick=()=>{style='vl';grp(['sS','sV','sL'],'sV');};
+$('sL').onclick=()=>{style='lijn';grp(['sS','sV','sL'],'sL');};
+$('bP').onclick=()=>{spin=!spin;$('bP').classList.toggle('on',spin);};
+$('bSS').onclick=()=>{ss=!ss;$('bSS').classList.toggle('on',ss);fitWords();};
+
+$('bTick').onclick=()=>{tick=!tick;$('bTick').classList.toggle('on',tick);};
+$('bBase').onclick=()=>{base=!base;$('bBase').classList.toggle('on',base);};
+function geom(s,th,spinExtra,ds,ca,sa){
+ const a=s.w/2,b=H/2,Dz=s.D*ds,ct=Math.cos(th),st=Math.sin(th);
+ const cb=Math.cos(s.base),sb=Math.sin(s.base),cz=-Dz/2;
+ const R=(x,z,c,si)=>[x*c+z*si,-x*si+z*c];
+ return u=>{const x=(u[0]?a:-a)+(s.off||0),y=u[1]?-b:b,z=u[2]?-Dz:0;let X,Z;
+  if(spinExtra){const p0=R(0,cz,cb,sb),p1=R(x,z-cz,ct,st);X=p0[0]+p1[0];Z=p0[1]+p1[1];}
+  else{[X,Z]=R(x,z,ct,st);}
+  X+=s.P[0];Z+=s.P[2];const Y=y+s.P[1];return[X,-Y*ca+Z*sa];};
+}
+function fitView(){const ds=$('dep').value/100;let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
+ for(const s of S){const sw=s.w,so=s.off;if(s.ww){const mx=Math.max(...s.ww);s.w=mx;s.off=(mx-s.w0)/2;} // ruimte voor het breedste P-woord
+  const P=geom(s,s.base,false,ds,ca0,sa0);for(const ux of[0,1])for(const uy of[0,1])for(const uz of[0,1]){const p=P([ux,uy,uz]);x0=Math.min(x0,p[0]);x1=Math.max(x1,p[0]);y0=Math.min(y0,p[1]);y1=Math.max(y1,p[1]);}
+  s.w=sw;s.off=so;}
+ const pd=160;svg.setAttribute('viewBox',`${(x0-pd).toFixed(0)} ${(y0-pd).toFixed(0)} ${(x1-x0+2*pd).toFixed(0)} ${(y1-y0+2*pd).toFixed(0)}`);}
+$('dep').oninput=fitView;fitView();
+Promise.race([(document.fonts?document.fonts.load('100px "TIP NHG"').then(()=>document.fonts.ready):Promise.resolve()),new Promise(r=>setTimeout(r,1500))]).catch(()=>{}).finally(fitWords);
+if(document.fonts)document.fonts.addEventListener('loadingdone',fitWords);
+const Lv=[0.1,0.25,1],Ln=Math.hypot(...Lv),L=Lv.map(v=>v/Ln);
+const ease=q=>(1-Math.cos(Math.PI*q))/2;
+function phase(tt){const cyc=Math.floor(tt/C),p=(tt-cyc*C)/C;return{cyc,q:p<.25?-1:(p-.25)/.75};}
+let t=0,last=performance.now();
+function render(){
+ const ds=$('dep').value/100,amp=$('amp').value*DEG,pit=$('pit').value*DEG,g=$('wav').value/100*1.5;
+ let al=A0;
+ if(!base){const q=phase(t).q;if(q>=0)al=A0-pit*(1-Math.cos(2*Math.PI*q))/2;}
+ const ca=Math.cos(al),sa=Math.sin(al);
+ const order=al>=0?[2,1,0]:[0,1,2];
+ let out='';
+ for(const i of order){
+  const s=S[i];let th=s.base,sp=false,words=[s.words[0]];
+  if(!base){const ph=phase(t-i*g);
+   if(tick){sp=true;if(spin&&i===2)words=s.words;th=s.base+Math.PI*turns(t,i);}
+   else if(spin&&i===2){sp=true;words=s.words;th=s.base+Math.PI*(ph.cyc+(ph.q<0?0:ease(ph.q)));}
+   else if(ph.q>=0){const a=2*Math.PI*ph.q;th=s.base+amp*Math.sin(a)*(1-Math.cos(a))/2/.6495;}}
+  const k=Math.round((th-s.base)/Math.PI),n=words.length,wi=((k%n)+n)%n,word=words[wi];
+  // blok past zich aan het woord aan; linkerkant blijft staan
+  if(s.ww){s.wc+=(s.ww[words.length>1?wi:0]-s.wc)*.18;s.w=s.wc;s.off=(s.wc-s.w0)/2;}
+  const P=geom(s,th,sp,ds,ca,sa);
+  const ct=Math.cos(th),st=Math.sin(th);
+  for(const F of FACES){
+   const[nx,ny,nz]=F.n;const X=nx*ct+nz*st,Z=-nx*st+nz*ct;
+   const cz=ny*sa+Z*ca;if(cz<1e-3)continue;
+   const pts=F.c.map(P);
+   let fill,stroke,sw;
+   if(style==='lijn'){fill='#fff';stroke='#111';sw=3;}
+   else{let sh=1;if(style==='vl'){const dot=X*L[0]+(ny*ca-Z*sa)*L[1]+cz*L[2];sh=Math.min(1,.28+.9*Math.max(0,dot));}
+    fill=`rgb(${s.col.map(v=>Math.round(v*sh)).join(',')})`;stroke=fill;sw=1.2;}
+   out+=`<polygon points="${pts.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ')}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}" stroke-linejoin="round"/>`;
+   if(F.t){const O=pts[0],A=pts[1],B=pts[3];
+    const m=[(A[0]-O[0])/s.w,(A[1]-O[1])/s.w,(B[0]-O[0])/H,(B[1]-O[1])/H,O[0],O[1]].map(v=>v.toFixed(4));
+    out+=`<text transform="matrix(${m.join(' ')})" x="${PAD}" y="${H-TOP}" font-size="${fsz(word,s.w).toFixed(1)}" letter-spacing="-0.01em" font-family="${FONT}" style="font-feature-settings:${ss?"'ss02'":"normal"}" fill="#000">${word}</text>`;}
+  }
+ }
+ svg.innerHTML=out;
+}
+function loop(now){const dt=Math.min(.05,(now-last)/1000);last=now;t+=dt*$('spd').value/40;render();requestAnimationFrame(loop);}
+requestAnimationFrame(loop);
+})();
+</script>
+<script src="tip-ui.js"></script></body></html>
