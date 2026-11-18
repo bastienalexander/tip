@@ -31,6 +31,8 @@ h2{font-size:30px;font-weight:600;margin:0;letter-spacing:-.01em}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
 .cell{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
 .cell img{width:100%;aspect-ratio:16/10;object-fit:cover;display:block;background:#fff}
+.cell canvas.bus{width:100%;aspect-ratio:16/10;display:block;background:#fff;cursor:grab;touch-action:pan-y}
+.cell canvas.bus.turning{cursor:grabbing}
 .frame{position:relative;overflow:hidden;background:#fff}
 .frame iframe{position:absolute;left:0;top:0;border:0;transform-origin:0 0;pointer-events:none}
 .cap{padding:8px 12px 10px;font-size:13px;color:var(--mute);display:flex;justify-content:space-between;gap:8px;align-items:center}
@@ -84,7 +86,7 @@ h1{letter-spacing:-.02em}
 </div></section>
 
 </main>
-<script src="paperbus-render.js"></script>
+<script src="paperbus-render.js?v=4"></script>
 <script>
 function fit(){document.querySelectorAll('.frame').forEach(f=>{const w=+f.dataset.w,h=+f.dataset.h,i=f.querySelector('iframe');
  f.style.aspectRatio=w+'/'+h;i.style.width=w+'px';i.style.height=h+'px';i.style.transform=`scale(${f.clientWidth/w})`;});}
@@ -94,11 +96,14 @@ addEventListener('resize',fit);fit();
  try{const photo=await TIPBUS.loadImg('beelden/zuil.jpg');
   for(const img of document.querySelectorAll('img.bus')){try{
    const art=await TIPBUS.loadSvgPoster('posters/'+img.dataset.poster+'.svg',1600);
-   const W=900,H=Math.round(W*photo.height/photo.width),m=TIPBUS.render(photo,art,W,H,TIPBUS.POSTERS[img.dataset.poster]||{}); // zelfde uitsnede als in de paperbus-tool
-   const c=document.createElement('canvas');c.width=960;c.height=600;const x=c.getContext('2d'); // liggend 16:10, zoals de PDF-pagina's
-   x.fillStyle='#fff';x.fillRect(0,0,960,600);const s=600/H,dw=W*s;x.drawImage(m,(960-dw)/2,0,dw,600);
-   img.src=c.toDataURL('image/jpeg',.9);img.closest('.cell').querySelector('.cap span').textContent='Paperbus · gebogen om de zuil';
+   const st={rep:true,...(TIPBUS.POSTERS[img.dataset.poster]||{})},g=TIPBUS.G,c=document.createElement('canvas');
+   c.width=960;c.height=600;c.className='bus';c.setAttribute('role','img');c.setAttribute('aria-label',img.alt+', sleep om de zuil te draaien');
+   const x=c.getContext('2d'),dw=600*photo.width/photo.height;x.imageSmoothingQuality='high'; // liggend 16:10, zoals de PDF-pagina's
+   const draw=W=>{const m=TIPBUS.render(photo,art,W,Math.round(W*photo.height/photo.width),st);x.fillStyle='#fff';x.fillRect(0,0,960,600);x.drawImage(m,(960-dw)/2,0,dw,600);};
+   draw(900);img.replaceWith(c);c.closest('.cell').querySelector('.cap span').textContent='Paperbus · sleep om te draaien';
+   let busy=false;TIPBUS.dragRotate(c,{radius:()=>((g.TR[0]-g.TL[0])+(g.BR[0]-g.BL[0]))/4*dw*c.clientWidth/960,get:()=>st.rot||0,
+    set:a=>{st.rot=a;if(busy)return;busy=true;requestAnimationFrame(()=>{busy=false;draw(520);});},end:()=>requestAnimationFrame(()=>draw(900))});
   }catch(e){}}}catch(e){}})();
 
 </script>
-<script src="tip-ui.js"></script></body></html>
+<script src="tip-ui.js?v=3"></script></body></html>

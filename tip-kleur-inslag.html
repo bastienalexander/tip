@@ -99,4 +99,4 @@ document.querySelectorAll('[data-paper]').forEach(b=>b.onclick=()=>{paper=b.data
 document.getElementById('bAcc').onclick=e=>{acc=!acc;e.target.classList.toggle('on',acc);build();draw();};
 document.getElementById('bRot').onclick=e=>{rot=!rot;e.target.classList.toggle('on',rot);};
 (document.fonts?document.fonts.load('600 100px "TIP NHG"').then(()=>document.fonts.ready):Promise.resolve()).then(()=>{build();draw();requestAnimationFrame(loop);});
-</script><script src="tip-ui.js"></script></body></html>
+</script><script src="tip-ui.js?v=3"></script></body></html>

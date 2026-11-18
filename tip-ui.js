@@ -14,8 +14,8 @@
   .cap a.roll{--roll-bg:#141414;--roll-fg:#fff} /* zwart: blijft zichtbaar op elk kleurvlak */
   a.back.roll{--roll-bg:#fff;--roll-fg:#141414}
   .cell{position:relative}
-  .cell img,.cell .frame{transition:transform .5s ease-in-out}
-  .cell:hover img,.cell:hover .frame{transform:scale(1.035)}
+  .cell img,.cell canvas.bus,.cell .frame{transition:transform .5s ease-in-out}
+  .cell:hover img,.cell:hover canvas.bus,.cell:hover .frame{transform:scale(1.035)}
   .cell .cap{position:relative;overflow:hidden;transition:color .3s ease-in-out}
   .cell .cap::before{content:"";position:absolute;inset:0;background:var(--acc,#fff);transform:translateY(101%);transition:transform .3s ease-in-out}
   .cell .cap>*{position:relative}
@@ -24,7 +24,7 @@
   .cell.link{cursor:pointer}
   #d1{--acc:#5BBFC0;--acc-ink:#141414} #d2{--acc:#FF5000;--acc-ink:#141414} #d3{--acc:#7614DD;--acc-ink:#fff}
   #d4{--acc:#2F4BEF;--acc-ink:#fff} #d5{--acc:#05A34A;--acc-ink:#141414}
-  @media (prefers-reduced-motion:reduce){.roll .r1,.roll .r2,.cell img,.cell .frame,.cell .cap::before{transition:none}}`;
+  @media (prefers-reduced-motion:reduce){.roll .r1,.roll .r2,.cell img,.cell canvas.bus,.cell .frame,.cell .cap::before{transition:none}}`;
   const st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
 
   function roll(el) {

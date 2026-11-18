@@ -38,6 +38,7 @@ h1{letter-spacing:-.02em}
 <select id="spd"><option value=".5">0,5×</option><option value="1" selected>1×</option><option value="1.5">1,5×</option></select><button id="bFs">Volledig scherm</button></div>
 <div class="stagewrap" id="wrap"><svg id="stage" viewBox="0 0 1600 900" xmlns="http://www.w3.org/2000/svg">
 <defs>
+ <rect id="bf" x="4.5" y="4.5" width="159" height="159" fill="#fff"/><rect id="bl" x="4.5" y="4.5" width="159" height="159" fill="none" stroke="#231f20" stroke-width="9"/>
  <g id="box"><rect x="4.5" y="4.5" width="159" height="159" fill="#fff" stroke="#231f20" stroke-width="9"/></g>
  <!-- woorden uit web exports/SVG/textiel.svg, innovatie.svg, platform.svg -->
  <g id="wtextiel" fill="#231f20"><path d="M121.94,39.64c-.12,2.66-.12,6.85-.12,10.77,0,3.43,0,7.99.12,10.9-9-.12-17.99-.25-25.98-.25,0,33.33.13,66.28.51,73.75-3.29-.38-8.87-.38-12.54-.38s-8.88,0-12.55.38c.38-7.35.51-40.3.51-73.75-7.99,0-16.99.13-25.98.25.12-2.91.12-7.47.12-10.9,0-3.92,0-7.98-.12-10.77H121.94Z"/><path d="M232.82,39.64c-.13,2.16-.26,6.59-.26,9.76,0,3.42,0,8.74.26,11.15-17.36-.13-36.5-.25-50.56-.25v16.73c16.85,0,35.48,0,49.42-.38-.13,4.3-.13,14.95-.13,19.51-13.69-.25-32.57-.38-49.29-.38v17.24c14.06,0,33.96-.13,50.56-.26-.26,2.54-.26,7.86-.26,11.66,0,3.04,0,7.73.26,10.27h-75.28c.51-12.42.51-27.25.51-47.53s0-35.73-.51-47.52H232.82Z"/><path d="M361.18,39.64c-6.97,11.28-17.23,29.15-27.12,47.4,10.01,17.74,20.79,35.86,28.13,47.65h-30.92c-3.29-7.1-6.46-13.18-10.89-22.18-2.79-5.45-5.2-10.39-6.97-15.08h-.13c-1.9,4.94-4.43,10.01-7.22,15.21-4.44,8.87-7.48,15.08-10.27,22.05h-28.64c6.85-10.9,17.62-30.29,27.75-48.29-9.5-17.61-19.13-34.34-26.35-46.76h30.03c3.29,7.61,7.22,15.72,11.66,23.95,2.53,4.82,4.43,8.62,5.95,12.42,1.53-3.8,3.17-7.47,5.71-12.29,5.32-10.01,7.98-16.47,11.4-24.08H361.18Z"/><path d="M469.27,39.64c-.13,2.66-.13,6.85-.13,10.77,0,3.43,0,7.99.13,10.9-9-.12-18-.25-25.98-.25,0,33.33.13,66.28.51,73.75-3.3-.38-8.87-.38-12.55-.38s-8.87,0-12.54.38c.38-7.35.5-40.3.5-73.75-7.98,0-16.98.13-25.98.25.13-2.91.13-7.47.13-10.9,0-3.92,0-7.98-.13-10.77H469.27Z"/><path d="M504.87,134.69c.38-13.82.38-27.38.38-47.53s0-33.83-.38-47.52h25.22c-.38,13.44-.38,27.12-.38,47.4s0,33.71.38,47.65H504.87Z"/><path d="M648.44,39.64c-.12,2.16-.25,6.59-.25,9.76,0,3.42,0,8.74.25,11.15-17.36-.13-36.49-.25-50.56-.25v16.73c16.86,0,35.48,0,49.42-.38-.12,4.3-.12,14.95-.12,19.51-13.69-.25-32.57-.38-49.3-.38v17.24c14.07,0,33.96-.13,50.56-.26-.25,2.54-.25,7.86-.25,11.66,0,3.04,0,7.73.25,10.27h-75.27c.51-12.42.51-27.25.51-47.53s0-35.73-.51-47.52H648.44Z"/><path d="M715.6,39.64c-.38,7.23-.63,25.73-.63,47.27,0,9,0,18.5.12,25.85,10.52,0,25.35,0,37.39-.38,0,3.68-.13,7.35-.13,11.15s.13,7.48.13,11.16h-62.22c0-7.86.38-27.25.38-47.53,0-22.55,0-38.52-.38-47.52H715.6Z"/></g>
@@ -73,9 +74,12 @@ function block(p,S,letter,k){ // p = linkerbovenhoek
  let s=`<g transform="translate(${p[0].toFixed(1)},${p[1].toFixed(1)}) scale(${S/168})"><use href="#box"/>`;
  if(letter&&k>0)s+=`<use href="#l${letter}" transform="translate(84,84) scale(${k.toFixed(3)}) translate(-84,-84)"/>`;
  return s+'</g>';}
-// spoor van A naar B: lege blokken op vaste afstand, van q tot p
-function trail(A,B,S,q,p,zf,out){const len=Math.hypot(B[0]-A[0],B[1]-A[1]);if(!len)return;const ds=STEP*S/len;
- for(let s=ds;s<p-1e-6;s+=ds)if(s>=q)out.push({z:zf(s),svg:block(lerp(A,B,s),S)});}
+// spoor van A naar B: lege blokken op gelijke afstand, van q tot p (n = aantal stappen, leeg = uit de dichtheid)
+function trail(A,B,S,q,p,out,n){const len=Math.hypot(B[0]-A[0],B[1]-A[1]);if(!len)return;n=n?Math.max(2,Math.round(n*.38/STEP)):Math.max(1,Math.round(len/(STEP*S)));
+ for(let k=1;k<n;k++){const s=k/n;if(s<p-1e-6&&s>=q)out.push({tr:lerp(A,B,s),S});}}
+// zoals p93: eerst alle witte vlakken, daarna alle lijnen eroverheen, zodat de blokken in elkaar grijpen
+function lattice(T){const g=(o,id)=>`<use href="#${id}" transform="translate(${o.tr[0].toFixed(1)},${o.tr[1].toFixed(1)}) scale(${o.S/168})"/>`;return T.map(o=>g(o,'bf')).join('')+T.map(o=>g(o,'bl')).join('');}
+function paint(out){const T=out.filter(o=>o.tr),R=out.filter(o=>!o.tr).sort((a,b)=>b.z-a.z);return lattice(T)+R.map(o=>o.svg).join('');}
 // muis en touch voor Spoor en Stappen
 const MS={p:null,sp:null,m:0,last:0};
 const SZ=180,SPX=SZ*159/168,SO=[800-(SZ+2*SPX)/2,450-(SZ+2*SPX)/2],cellPx=(c,r)=>[SO[0]+c*SPX,SO[1]+r*SPX]; // randen overlappen
@@ -104,20 +108,19 @@ const S=[
    let p1=t<7.5?e((t-.6)/1.8):1-e((t-7.5)/.9), p2=t<6.6?e((t-2.8)/1.8):1-e((t-6.6)/.9);
    // muis: het I-blok volgt de muis, beide sporen buigen mee
    p1+=(1-p1)*m;p2+=(1-p2)*m;const B=MS.sp?lerp(Bh,[MS.sp[0]-Z/2,MS.sp[1]-Z/2],m):Bh;
-   const mid=s=>Math.min(s,1-s); // uiteinden boven, midden achter (zoals p93)
-   trail(A,B,Z,0,p1,mid,out);if(p1>=1)trail(B,C,Z,0,p2,mid,out);
+   trail(A,B,Z,0,p1,out,11);if(p1>=1)trail(B,C,Z,0,p2,out,11); // beide sporen evenveel stappen, zoals p93
    out.push({z:-1,svg:block(A,Z,'T',1)});
    if(p1>0&&p1<1)out.push({z:-2,svg:block(lerp(A,B,p1),Z)});
    if(p1>=1)out.push({z:-1,svg:block(B,Z,'I',m>.5||t>=7.5?1:pop(t-2.4))});
    if(p1>=1&&p2>0&&p2<1)out.push({z:-2,svg:block(lerp(B,C,p2),Z)});
    if(p2>=1)out.push({z:-1,svg:block(C,Z,'P',m>.5?1:pop(t-4.6))});
-   out.sort((a,b)=>b.z-a.z);return out.map(o=>o.svg).join('');}},
+   return paint(out);}},
  {n:"Stappen",draw(t){const out=[];
    if(SNK.on){const now=performance.now()/1000; // muis: blokken stappen vakje voor vakje naar je toe
     for(const L of"TIP"){const b=SNK.b[L],A=cellPx(...b.from),B=cellPx(...b.cell),p=e((now-b.t0)/MV),q=e((now-b.t0-.18)/MV);
-     trail(A,B,SZ,q,p,s=>-s,out);out.push({z:-5,svg:block(lerp(A,B,p),SZ,L,1)});}}
-   else{const pos=stapPos(t);for(const L of"TIP"){const{A,B,p,q}=pos[L];trail(A,B,SZ,q,p,s=>-s,out);out.push({z:-5,svg:block(lerp(A,B,p),SZ,L,1)});}}
-   out.sort((a,b)=>b.z-a.z);return out.map(o=>o.svg).join('');}},
+     trail(A,B,SZ,q,p,out);out.push({z:-5,svg:block(lerp(A,B,p),SZ,L,1)});}}
+   else{const pos=stapPos(t);for(const L of"TIP"){const{A,B,p,q}=pos[L];trail(A,B,SZ,q,p,out);out.push({z:-5,svg:block(lerp(A,B,p),SZ,L,1)});}}
+   return paint(out);}},
  {n:"Uitklappen",draw(t){ // T, I, P klappen open tot TEXTIEL, INNOVATIE, PLATFORM (p96 → p97); het P-blok schuift door de P-woorden (p98)
    const now=performance.now()/1000,user=SL.drag||now-SL.last<5;
    if(user)t=2.6; // tijdens schuiven blijft alles open staan
@@ -134,11 +137,11 @@ const S=[
      o+='</g>';}return o;};
    return one(52,150,SCW,'cb')+one(1290,762,.2,'cm');}},
  {n:"Zelf tekenen",interactive:true,draw(){const Z=180,out=[];
-   const B=DR.legs.flat().concat(DR.trail),n=B.length;B.forEach(p=>out.push(block([p[0]-Z/2,p[1]-Z/2],Z))); // gezette sporen blijven staan, zoals p93
+   const B=DR.legs.flat().concat(DR.trail),n=B.length,T=B.map(p=>({tr:[p[0]-Z/2,p[1]-Z/2],S:Z})); // gezette sporen blijven staan, zoals p93
    for(const st of DR.stamps)out.push(block([st.p[0]-Z/2,st.p[1]-Z/2],Z,st.l,pop(performance.now()/1000-st.t)));
    if(DR.ptr)out.push(block([DR.ptr[0]-Z/2,DR.ptr[1]-Z/2],Z,"TIP"[DR.next],.45));
    if(!DR.stamps.length&&!n&&!DR.ptr)out.push(`<text x="800" y="460" text-anchor="middle" font-size="40" fill="#fff" font-family="Helvetica Neue,Arial">Beweeg je muis of vinger hier · klik of tik om een letter te zetten</text>`);
-   return out.join('');}}];
+   return lattice(T)+out.join('');}}];
 // zelf tekenen: blok volgt muis/vinger, laat een spoor achter; klik of tik zet T, I, P neer
 const DR={trail:[],legs:[],stamps:[],ptr:null,next:0,last:0};
 const stage=document.getElementById('stage');
@@ -176,4 +179,4 @@ document.getElementById('step').oninput=ev=>STEP=+ev.target.value;
 document.getElementById('bFs').onclick=()=>{const el=document.getElementById('wrap');document.fullscreenElement?document.exitFullscreen():el.requestFullscreen&&el.requestFullscreen();};
 document.addEventListener('keydown',ev=>{if(ev.code==='Space'){ev.preventDefault();bp.click();}if(ev.key==='c'||ev.key==='C'){DR.trail=[];DR.legs=[];DR.stamps=[];DR.next=0;}});
 requestAnimationFrame(loop);
-</script><script>if(!document.fullscreenEnabled){const b=document.getElementById("bFs");if(b)b.style.display="none";}</script><script src="tip-ui.js"></script></body></html>
+</script><script>if(!document.fullscreenEnabled){const b=document.getElementById("bFs");if(b)b.style.display="none";}</script><script src="tip-ui.js?v=3"></script></body></html>

@@ -131,4 +131,4 @@ document.addEventListener('keydown',e=>{if(e.code==='Space'){e.preventDefault();
 let started=false;const start=()=>{if(started)return;started=true;setup();requestAnimationFrame(loop);};
 Promise.race([(document.fonts?document.fonts.load(`100px "TIP NHG"`).then(()=>document.fonts.ready):Promise.resolve()),new Promise(r=>setTimeout(r,1500))]).catch(()=>{}).finally(start);
 if(document.fonts)document.fonts.addEventListener('loadingdone',()=>{if(started)setup();});
-</script><script>if(!document.fullscreenEnabled){const b=document.getElementById("bFs");if(b)b.style.display="none";}</script><script src="tip-ui.js"></script></body></html>
+</script><script>if(!document.fullscreenEnabled){const b=document.getElementById("bFs");if(b)b.style.display="none";}</script><script src="tip-ui.js?v=3"></script></body></html>

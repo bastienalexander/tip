@@ -104,6 +104,33 @@
     const x = c.getContext('2d'); x.imageSmoothingQuality = 'high'; x.drawImage(img, 0, 0, c.width, c.height); return c;
   }
 
+  // ronddraaien door horizontaal te slepen, met muis of vinger; na loslaten draait de zuil even door
+  function dragRotate(el, { radius, get, set, end, skip }) {
+    const wrap = a => ((a + 180) % 360 + 360) % 360 - 180;
+    let d = null, raf = 0;
+    const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const finish = () => { el.classList.remove('turning'); end && end(); };
+    el.addEventListener('pointerdown', e => {
+      if (e.button || (skip && skip(e))) return;
+      cancelAnimationFrame(raf);
+      d = { id: e.pointerId, x: e.clientX, a: get(), last: get(), t: e.timeStamp, v: 0 };
+      el.setPointerCapture(e.pointerId); el.classList.add('turning');
+    });
+    el.addEventListener('pointermove', e => {
+      if (!d || e.pointerId !== d.id) return;
+      const a = d.a + (e.clientX - d.x) / (radius() || 1) / D2R, dt = Math.max(1, e.timeStamp - d.t);
+      d.v = .7 * d.v + .3 * (a - d.last) / dt; d.last = a; d.t = e.timeStamp; set(wrap(a));
+    });
+    const up = e => {
+      if (!d || e.pointerId !== d.id) return;
+      let a = d.last, v = d.v * 16; const idle = e.timeStamp - d.t > 80; d = null;
+      if (e.type === 'pointercancel' || calm || idle || Math.abs(v) < .15) return finish();
+      const spin = () => { a += v; v *= .93; set(wrap(a)); if (Math.abs(v) > .08) raf = requestAnimationFrame(spin); else finish(); };
+      raf = requestAnimationFrame(spin);
+    };
+    el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
+  }
+
   // standaard-uitsnede per poster: size = vergroting, pos = welk deel in hoogte (0 boven – 1 onder), rot = draaien in graden
   // Kader, Platform en Blokken groot en kloek; Patroon en Kantelpunt vullen het papier precies
   const POSTERS = {
@@ -114,5 +141,5 @@
     blok:      { size: 1.65, pos: .5,  rot: 0 },
   };
 
-  window.TIPBUS = { G, POSTERS, spanFor, render, loadImg, loadSvgPoster };
+  window.TIPBUS = { G, POSTERS, spanFor, render, loadImg, loadSvgPoster, dragRotate };
 })();
