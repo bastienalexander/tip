@@ -137,8 +137,8 @@
     kader:     { size: 1.6,  pos: .10, rot: 38 }, // tekst begint links op de zuil en loopt rechts om de ronding weg
     platform2: { size: 1.45, pos: .48, rot: -4 },
     pattern:   { size: 1,    pos: .5,  rot: 0 },
-    tipping:   { size: 1,    pos: .5,  rot: 0 },
-    blok:      { size: 1.65, pos: .5,  rot: 0 },
+    tipping2:  { size: 1,    pos: .5,  rot: 0 },   // twee rijen naast elkaar, herhaalt precies 2x rondom
+    blok2:     { size: 1.65, pos: .5,  rot: 0 },   // voorkant de vijf blokken, achterkant het spoor; precies 1x rondom
   };
 
   window.TIPBUS = { G, POSTERS, spanFor, render, loadImg, loadSvgPoster, dragRotate };
